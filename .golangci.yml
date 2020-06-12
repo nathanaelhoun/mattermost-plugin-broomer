@@ -9,7 +9,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/mattermost/mattermost-starter-template
+    local-prefixes: github.com/nathanaelhoun/mattermost-plugin-postmanager
   golint:
     min-confidence: 0
   govet:

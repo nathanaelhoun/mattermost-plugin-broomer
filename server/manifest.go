@@ -12,10 +12,10 @@ var manifest *model.Manifest
 
 const manifestStr = `
 {
-  "id": "com.mattermost.plugin-starter-template",
-  "name": "Plugin Starter Template",
-  "description": "This plugin serves as a starting point for writing a Mattermost plugin.",
-  "version": "0.1.0",
+  "id": "com.github.nathanaelhoun.plugin-postmanager",
+  "name": "PostManager",
+  "description": "This plugin allow to manage posts with commands.",
+  "version": "0.2.0",
   "min_server_version": "5.12.0",
   "server": {
     "executables": {
@@ -25,13 +25,19 @@ const manifestStr = `
     },
     "executable": ""
   },
-  "webapp": {
-    "bundle_path": "webapp/dist/main.js"
-  },
   "settings_schema": {
     "header": "",
-    "footer": "",
-    "settings": []
+    "footer": "* To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-postmanager).",
+    "settings": [
+      {
+        "key": "IsClearAliasActivated",
+        "display_name": "Activate /clear alias",
+        "type": "bool",
+        "help_text": "If enabled, '/clear' will be an alias for '/postmanage' delete.",
+        "placeholder": "",
+        "default": "true"
+      }
+    ]
   }
 }
 `

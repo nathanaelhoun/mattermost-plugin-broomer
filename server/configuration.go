@@ -9,15 +9,9 @@ import (
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
 // configuration, as well as values computed from the configuration. Any public fields will be
 // deserialized from the Mattermost server configuration in OnConfigurationChange.
-//
-// As plugins are inherently concurrent (hooks being called asynchronously), and the plugin
-// configuration can change at any time, access to the configuration must be synchronized. The
-// strategy used in this plugin is to guard a pointer to the configuration, and clone the entire
-// struct whenever it changes. You may replace this with whatever strategy you choose.
-//
-// If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
-// copy appropriate for your types.
 type configuration struct {
+	// word used to trigger the plugin
+	IsClearAliasActivated bool
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -75,6 +69,16 @@ func (p *Plugin) OnConfigurationChange() error {
 	// Load the public configuration fields from the Mattermost server configuration.
 	if err := p.API.LoadPluginConfiguration(configuration); err != nil {
 		return errors.Wrap(err, "failed to load plugin configuration")
+	}
+
+	if configuration.IsClearAliasActivated {
+		if err := p.API.RegisterCommand(p.getDeleteAliasCommand()); err != nil {
+			return errors.Wrap(err, "failed to register new command")
+		}
+	} else {
+		if err := p.API.UnregisterCommand("", deleteAliasCommand); err != nil {
+			return errors.Wrap(err, "Failed to unregister old command clear")
+		}
 	}
 
 	p.setConfiguration(configuration)

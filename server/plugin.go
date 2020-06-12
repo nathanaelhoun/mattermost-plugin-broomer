@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/pkg/errors"
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -18,11 +18,24 @@ type Plugin struct {
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
+
+	botUserID string
 }
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
-}
+func (p *Plugin) OnActivate() error {
+	botUserID, err := p.Helpers.EnsureBot(&model.Bot{
+		Username:    "postmanager",
+		DisplayName: "PostManager Bot",
+		Description: "Bot managed by the PostManager plugin.",
+	})
+	if err != nil {
+		return errors.Wrap(err, "Failed to ensure bot")
+	}
+	p.botUserID = botUserID
 
-// See https://developers.mattermost.com/extend/plugins/server/reference/
+	if err := p.API.RegisterCommand(p.getMainCommand()); err != nil {
+		return errors.Wrap(err, "failed to register new command")
+	}
+
+	return nil
+}

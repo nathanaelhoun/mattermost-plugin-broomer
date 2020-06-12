@@ -1,4 +1,6 @@
-# Plugin PostManager (Beta)
+# Plugin PostManager (Beta) 
+
+[![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-postmanager/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-postmanager)
 
 This [mattermost](https://mattermost.org) plugin allow to manage posts with commands.
 

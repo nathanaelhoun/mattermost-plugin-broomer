@@ -83,6 +83,15 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 			SubmitLabel:    "Confirm",
 			NotifyOnCancel: false,
 			State:          strconv.Itoa(numPostToDelete),
+			Elements: []model.DialogElement{
+				model.DialogElement{
+					Type:        "bool",
+					Name:        "deletePinnedPosts",
+					DisplayName: "Delete pinned posts ?",
+					HelpText:    "Pinned posts are keept by default",
+					Optional:    true,
+				},
+			},
 		},
 	}
 

@@ -27,7 +27,7 @@ func (p *Plugin) sendEphemeralPost(args *model.CommandArgs, message string) *mod
 	)
 }
 
-func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID string) *model.AppError {
+func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID string, deletePinnedPosts bool) *model.AppError {
 	postList, err := p.API.GetPostsForChannel(channelID, 0, numPostToDelete)
 	if err != nil {
 		p.API.LogError(
@@ -42,21 +42,25 @@ func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID s
 	numDeletedPost := 0
 	hasAdminRights := hasAdminRights(p, userID)
 	for _, postID := range postList.Order {
-		if !hasAdminRights {
-			post, err := p.API.GetPost(postID)
-			if err != nil {
-				isError = true
-				p.API.LogError(
-					"Unable to get post "+postID+" informations.",
-					"err", err.Error(),
-				)
-				continue // process next post
-			}
+		post, err := p.API.GetPost(postID)
+		if err != nil {
+			isError = true
+			p.API.LogError(
+				"Unable to get post "+postID+" informations.",
+				"err", err.Error(),
+			)
+			continue // process next post
+		}
 
+		if !hasAdminRights {
 			if post.UserId != userID {
 				isErrorNotAdmin = true
 				continue // process next post
 			}
+		}
+
+		if post.IsPinned && !deletePinnedPosts {
+			continue // process next post
 		}
 
 		if err := p.API.DeletePost(postID); err != nil {

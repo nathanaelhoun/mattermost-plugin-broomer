@@ -24,16 +24,16 @@ type Plugin struct {
 
 func (p *Plugin) OnActivate() error {
 	botUserID, err := p.Helpers.EnsureBot(&model.Bot{
-		Username:    "postmanager",
-		DisplayName: "PostManager Bot",
-		Description: "Bot managed by the PostManager plugin.",
+		Username:    "clearbot",
+		DisplayName: "Clear Bot",
+		Description: "Bot managed by the Clear plugin.",
 	})
 	if err != nil {
 		return errors.Wrap(err, "Failed to ensure bot")
 	}
 	p.botUserID = botUserID
 
-	if err := p.API.RegisterCommand(p.getMainCommand()); err != nil {
+	if err := p.API.RegisterCommand(p.getCommand()); err != nil {
 		return errors.Wrap(err, "failed to register new command")
 	}
 

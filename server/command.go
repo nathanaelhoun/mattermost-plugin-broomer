@@ -10,43 +10,31 @@ import (
 )
 
 const (
-	mainCommand        = "postmanage"
-	subcommandDelete   = "delete"
-	deleteAliasCommand = "clear"
+	commandTrigger = "clear"
 
-	commandHelpText = "**Manage posts with commands.**\n" +
-		"Available commands:\n" +
-		"- `" + subcommandDelete + " [number-of-post]` 	Delete posts in the channel.\n" +
-		"- `help` 										Display usage."
+	commandHelpText = "**Delete posts with commands.**\n" +
+		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel" +
+		"" +
+		"Available options :" +
+		"    _incoming feature_"
 )
 
-func (p *Plugin) getMainCommand() *model.Command {
+func (p *Plugin) getCommand() *model.Command {
 	return &model.Command{
-		Trigger:          mainCommand,
+		Trigger:          commandTrigger,
 		AutoComplete:     true,
-		AutoCompleteDesc: "Manage posts. Available commands : `delete`",
-		AutoCompleteHint: "[command]",
+		AutoCompleteDesc: "Delete posts",
+		AutoCompleteHint: "[--option / number-of-posts]",
 		AutocompleteData: getAutocompleteData(),
 	}
 }
 
 func getAutocompleteData() *model.AutocompleteData {
-	command := model.NewAutocompleteData(mainCommand, "[command]", "Manage posts. Available commands : delete")
+	command := model.NewAutocompleteData(commandTrigger, "[--option / number-of-posts]", "Delete posts in the current channel")
 
-	delete := model.NewAutocompleteData(subcommandDelete, "[number-of-post]", "Delete the last [number-of-post] posts in this channel.")
-	delete.AddTextArgument("Delete the last [number-of-post] posts in this channel.", "[number-of-post]", "[0-9]+")
-	command.AddCommand(delete)
+	command.AddTextArgument("Delete the last [number-of-post] posts in this channel.", "[number-of-post]", "[0-9]+")
 
 	return command
-}
-
-func (p *Plugin) getDeleteAliasCommand() *model.Command {
-	return &model.Command{
-		Trigger:          deleteAliasCommand,
-		AutoComplete:     true,
-		AutoCompleteDesc: "Delete the last [number-of-post] posts in this channel. Alias for `/postmanage delete`",
-		AutoCompleteHint: "[number-of-post]",
-	}
 }
 
 func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArgs) (int, *model.AppError) {
@@ -66,13 +54,13 @@ func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArg
 		return 0, nil
 	}
 
-	currentChannel, err2 := p.API.GetChannel(args.ChannelId)
-	if err2 != nil {
+	currentChannel, appErr := p.API.GetChannel(args.ChannelId)
+	if appErr != nil {
 		// stop the command because if numPostToDelete > currentChannel.TotalMsgCount, the plugin crashes
 		p.sendEphemeralPost(args, "Error when deleting posts.")
 		return 0, &model.AppError{
 			Message:       "Unable to get channel statistics",
-			DetailedError: err2.DetailedError,
+			DetailedError: appErr.DetailedError,
 		}
 	}
 	if currentChannel.TotalMsgCount < numPostToDelete64 {
@@ -91,7 +79,7 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 		URL:       fmt.Sprintf("%s/plugins/%s/dialog/deletion", *serverConfig.ServiceSettings.SiteURL, manifest.Id),
 		Dialog: model.Dialog{
 			CallbackId:     "confirmPostDeletion",
-			Title:          fmt.Sprintf("Do you really want to delete the last %d posts in this channel?", numPostToDelete),
+			Title:          fmt.Sprintf("Do you want to delete the last %d posts in this channel?", numPostToDelete),
 			SubmitLabel:    "Confirm",
 			NotifyOnCancel: false,
 			State:          strconv.Itoa(numPostToDelete),
@@ -108,47 +96,20 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 	return &model.CommandResponse{}, nil
 }
 
-func parseCommand(args *model.CommandArgs) (string, []string) {
+func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	split := strings.Fields(args.Command)
 
-	// handle aliases
-	switch strings.Trim(split[0], "/") {
-	case deleteAliasCommand:
-		return subcommandDelete, split[1:]
-
-	case mainCommand:
-		fallthrough
-	default:
-		action := ""
-		if len(split) > 1 {
-			action = split[1]
-		}
-
-		parameters := []string{}
-		if len(split) > 2 {
-			parameters = split[2:]
-		}
-
-		return action, parameters
-	}
-}
-
-func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	action, parameters := parseCommand(args)
-
-	switch action {
-	case subcommandDelete:
-		numPostToDelete, err := p.verifyCommandDelete(parameters, args)
-		if err != nil || numPostToDelete == 0 {
-			return &model.CommandResponse{}, err
-		}
-
-		return p.askConfirmCommandDelete(numPostToDelete, args)
-
-	case "help":
-		fallthrough
-	default:
+	if len(split) <= 1 {
 		p.sendEphemeralPost(args, commandHelpText)
 		return &model.CommandResponse{}, nil
 	}
+
+	parameters := split[1:]
+
+	numPostToDelete, err := p.verifyCommandDelete(parameters, args)
+	if err != nil || numPostToDelete == 0 {
+		return &model.CommandResponse{}, err
+	}
+
+	return p.askConfirmCommandDelete(numPostToDelete, args)
 }

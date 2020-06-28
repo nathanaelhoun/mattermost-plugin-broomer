@@ -42,7 +42,7 @@ func (p *Plugin) handleDeletion(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	if err := p.deletePosts(numPostToDelete, request.ChannelId, request.UserId); err != nil {
+	if err := p.deleteLastPosts(numPostToDelete, request.ChannelId, request.UserId); err != nil {
 		p.API.LogError("Failed to delete posts", "err", err.Error())
 		return
 	}

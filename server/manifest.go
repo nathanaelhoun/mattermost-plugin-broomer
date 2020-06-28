@@ -12,9 +12,9 @@ var manifest *model.Manifest
 
 const manifestStr = `
 {
-  "id": "com.github.nathanaelhoun.plugin-postmanager",
-  "name": "PostManager",
-  "description": "This plugin allow to manage posts with commands.",
+  "id": "com.github.nathanaelhoun.plugin-clear",
+  "name": "Clear",
+  "description": "Delete multiple posts with a command.",
   "version": "0.2.0",
   "min_server_version": "5.12.0",
   "server": {
@@ -27,17 +27,8 @@ const manifestStr = `
   },
   "settings_schema": {
     "header": "",
-    "footer": "* To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-postmanager).",
-    "settings": [
-      {
-        "key": "IsClearAliasActivated",
-        "display_name": "Activate /clear alias",
-        "type": "bool",
-        "help_text": "If enabled, '/clear' will be an alias for '/postmanage' delete.",
-        "placeholder": "",
-        "default": "true"
-      }
-    ]
+    "footer": "* To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-clear).",
+    "settings": []
   }
 }
 `

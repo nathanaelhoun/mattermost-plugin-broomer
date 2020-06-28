@@ -1,8 +1,8 @@
-# Plugin PostManager (Beta) 
+# Plugin Clear (Beta)
 
-[![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-postmanager/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-postmanager)
+[![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
 
-This [mattermost](https://mattermost.org) plugin allow to manage posts with commands.
+This [mattermost](https://mattermost.org) plugin allow to delete post with a command.
 
 ![Plugin screenshot](./screenshot.png)
 
@@ -11,24 +11,21 @@ This [mattermost](https://mattermost.org) plugin allow to manage posts with comm
 ## Features
 
 #### Manage posts with commands
-Available commands :
-  - `/postmanage delete [number-of-post]` 	Delete posts in the channel
-  - `/postmanage help` 										  Display command usage
 
-#### Use aliases
-You can toggle theses aliases in **System Console > Plugins > PostManager**
-  - `/clear` is an alias for `/postmanage delete`
+`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
+
+Available options :
+  _incoming feature_
 
 ## Installation
 
-1. Go to the [releases page of this Github repository](https://github.com/nathanaelhoun/mattermost-plugin-postmanager/releases) and download the latest release for your Mattermost server.
+1. Go to the [releases page of this Github repository](https://github.com/nathanaelhoun/mattermost-plugin-clear/releases) and download the latest release for your Mattermost server.
 2. Upload this file in the Mattermost System Console under **System Console > Plugins > Management** to install the plugin. To learn more about how to upload a plugin, [see the documentation](https://docs.mattermost.com/administration/plugins.html#plugin-uploads).
 3. Activate the plugin at **System Console > Plugins > Management**.
 
-
 ## Contribution
 
-Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-postmanager/issues/new/choose) to submit possible improvements. PR are also welcomed!
+Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-clear/issues/new/choose) to submit possible improvements. PR are also welcomed!
 
 ## Development
 

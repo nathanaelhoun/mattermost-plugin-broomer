@@ -6,7 +6,7 @@ This [Mattermost](https://mattermost.org) plugin allow to delete posts with a /c
 
 ![Plugin screenshot](./screenshot.png)
 
-**Supported Mattermost Server Versions: 5.2+** (command autocomplete with Mattermost 5.24+)
+**Supported Mattermost Server Versions: 5.12+** (command autocomplete with Mattermost 5.24+)
 
 ## Features
 

@@ -12,11 +12,13 @@ import (
 const (
 	commandTrigger = "clear"
 
+	optionDeletePinnedPost = "delete-pinned-posts"
+
 	commandHelpText = "**Delete posts with commands.**\n" +
-		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel" +
-		"" +
-		"Available options :" +
-		"    _incoming feature_"
+		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
+		"\n" +
+		"Available options :\n" +
+		" - `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
 )
 
 func (p *Plugin) getCommand() *model.Command {
@@ -33,8 +35,46 @@ func getAutocompleteData() *model.AutocompleteData {
 	command := model.NewAutocompleteData(commandTrigger, "[--option / number-of-posts]", "Delete posts in the current channel")
 
 	command.AddTextArgument("Delete the last [number-of-post] posts in this channel.", "[number-of-post]", "[0-9]+")
+	command.AddNamedTextArgument(optionDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
 
 	return command
+}
+
+func parseArguments(args *model.CommandArgs) ([]string, map[string]bool) {
+	parameters := []string{}
+	options := make(map[string]bool)
+
+	nextIsNamedTextArgumentValue := false
+	namedTextArgumentName := ""
+
+	for position, arg := range strings.Fields(args.Command) {
+		if position == 0 {
+			continue // skip '/commandTrigger'
+		}
+
+		if nextIsNamedTextArgumentValue {
+			// NamedTextArgument should only be "true" or "false" in this plugin
+			if arg == "false" {
+				delete(options, namedTextArgumentName)
+			}
+
+			nextIsNamedTextArgumentValue = false
+			namedTextArgumentName = ""
+			continue
+		}
+
+		if strings.HasPrefix(arg, "--") {
+			optionName := arg[2:]
+			options[optionName] = true
+			nextIsNamedTextArgumentValue = true
+			namedTextArgumentName = optionName
+			continue
+		}
+
+		parameters = append(parameters, arg)
+	}
+
+	return parameters, options
 }
 
 func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArgs) (int, *model.AppError) {
@@ -71,7 +111,7 @@ func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArg
 	return int(numPostToDelete64), nil
 }
 
-func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.CommandArgs, deletePinnedPosts bool) (*model.CommandResponse, *model.AppError) {
 	serverConfig := p.API.GetConfig()
 
 	dialog := &model.OpenDialogRequest{
@@ -84,11 +124,12 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 			NotifyOnCancel: false,
 			State:          strconv.Itoa(numPostToDelete),
 			Elements: []model.DialogElement{
-				model.DialogElement{
+				{
 					Type:        "bool",
 					Name:        "deletePinnedPosts",
 					DisplayName: "Delete pinned posts ?",
 					HelpText:    "Pinned posts are keept by default",
+					Default:     strconv.FormatBool(deletePinnedPosts),
 					Optional:    true,
 				},
 			},
@@ -106,19 +147,18 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 }
 
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	split := strings.Fields(args.Command)
+	parameters, options := parseArguments(args)
 
-	if len(split) <= 1 {
+	if len(parameters) < 1 {
 		p.sendEphemeralPost(args, commandHelpText)
 		return &model.CommandResponse{}, nil
 	}
-
-	parameters := split[1:]
 
 	numPostToDelete, err := p.verifyCommandDelete(parameters, args)
 	if err != nil || numPostToDelete == 0 {
 		return &model.CommandResponse{}, err
 	}
 
-	return p.askConfirmCommandDelete(numPostToDelete, args)
+	deletePinnedPost := options[optionDeletePinnedPost]
+	return p.askConfirmCommandDelete(numPostToDelete, args, deletePinnedPost)
 }

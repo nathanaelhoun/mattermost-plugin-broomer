@@ -27,7 +27,7 @@ func (p *Plugin) sendEphemeralPost(args *model.CommandArgs, message string) *mod
 	)
 }
 
-func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID string, deletePinnedPosts bool) *model.AppError {
+func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string, userID string, deletePinnedPosts bool) *model.AppError {
 	postList, err := p.API.GetPostsForChannel(channelID, 0, numPostToDelete)
 	if err != nil {
 		p.API.LogError(

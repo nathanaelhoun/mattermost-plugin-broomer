@@ -10,11 +10,9 @@ This [mattermost](https://mattermost.org) plugin allow to delete post with a com
 
 ## Features
 
-#### Manage posts with commands
-
 `/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
 
-Available options :
+### Available options :
 *  `--delete-pinned-posts` Also delete pinned post (disabled by default)
 *  `--confirm` Do not show confirmation dialog
 

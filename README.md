@@ -15,7 +15,8 @@ This [mattermost](https://mattermost.org) plugin allow to delete post with a com
 `/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
 
 Available options :
-  _incoming feature_
+*  `--delete-pinned-posts` Also delete pinned post (disabled by default)
+*  `--confirm` Do not show confirmation dialog
 
 ## Installation
 

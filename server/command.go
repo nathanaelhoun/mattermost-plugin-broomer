@@ -96,7 +96,6 @@ func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArg
 
 	currentChannel, appErr := p.API.GetChannel(args.ChannelId)
 	if appErr != nil {
-		// stop the command because if numPostToDelete > currentChannel.TotalMsgCount, the plugin crashes
 		p.sendEphemeralPost(args, "Error when deleting posts.")
 		return 0, &model.AppError{
 			Message:       "Unable to get channel statistics",
@@ -104,6 +103,7 @@ func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArg
 		}
 	}
 	if currentChannel.TotalMsgCount < numPostToDelete64 {
+		// stop the command because if numPostToDelete > currentChannel.TotalMsgCount, the plugin crashes
 		p.sendEphemeralPost(args, "Cannot delete more posts that there is in this channel.")
 		return 0, nil
 	}

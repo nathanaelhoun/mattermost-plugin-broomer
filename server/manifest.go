@@ -14,7 +14,7 @@ const manifestStr = `
 {
   "id": "com.github.nathanaelhoun.plugin-clear",
   "name": "Clear",
-  "description": "Delete multiple posts with a command.",
+  "description": "Delete multiple posts with a /command.",
   "version": "0.2.0",
   "min_server_version": "5.12.0",
   "server": {

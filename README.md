@@ -2,7 +2,7 @@
 
 [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
 
-This [mattermost](https://mattermost.org) plugin allow to delete post with a command.
+This [Mattermost](https://mattermost.org) plugin allow to delete posts with a /command.
 
 ![Plugin screenshot](./screenshot.png)
 

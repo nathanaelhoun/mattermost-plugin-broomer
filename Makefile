@@ -1,7 +1,7 @@
 GO ?= $(shell command -v go 2> /dev/null)
 NPM ?= $(shell command -v npm 2> /dev/null)
 CURL ?= $(shell command -v curl 2> /dev/null)
-DEBUG ?=1
+DEBUG ?=
 MANIFEST_FILE ?= plugin.json
 GOPATH ?= $(shell go env GOPATH)
 GO_TEST_FLAGS ?= -race

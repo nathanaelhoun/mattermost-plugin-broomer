@@ -13,12 +13,14 @@ const (
 	commandTrigger = "clear"
 
 	optionDeletePinnedPost = "delete-pinned-posts"
+	optionNoConfirmDialog  = "confirm"
 
 	commandHelpText = "## Delete posts with /" + commandTrigger + "\n" +
 		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
 		"\n" +
 		"### Available options :\n" +
-		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
+		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n" +
+		" * `--" + optionNoConfirmDialog + "` Do not show confirmation dialog\n"
 )
 
 func (p *Plugin) getCommand() *model.Command {
@@ -36,11 +38,12 @@ func getAutocompleteData() *model.AutocompleteData {
 
 	command.AddTextArgument("Delete the last [number-of-post] posts in this channel", "[number-of-post]", "[0-9]+")
 	command.AddNamedTextArgument(optionDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
+	command.AddNamedTextArgument(optionNoConfirmDialog, "Do not show confirmation dialog", "true", "", false)
 
 	return command
 }
 
-func parseArguments(args *model.CommandArgs) ([]string, map[string]bool) {
+func parseArguments(args *model.CommandArgs) ([]string, map[string]bool, string) {
 	parameters := []string{}
 	options := make(map[string]bool)
 
@@ -54,8 +57,13 @@ func parseArguments(args *model.CommandArgs) ([]string, map[string]bool) {
 
 		if nextIsNamedTextArgumentValue {
 			// NamedTextArgument should only be "true" or "false" in this plugin
-			if arg == "false" {
+			switch arg {
+			case "false":
 				delete(options, namedTextArgumentName)
+			case "true":
+				break
+			default:
+				return nil, nil, fmt.Sprintf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
 			}
 
 			nextIsNamedTextArgumentValue = false
@@ -74,7 +82,11 @@ func parseArguments(args *model.CommandArgs) ([]string, map[string]bool) {
 		parameters = append(parameters, arg)
 	}
 
-	return parameters, options
+	if nextIsNamedTextArgumentValue {
+		return nil, nil, fmt.Sprintf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
+	}
+
+	return parameters, options, ""
 }
 
 func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArgs) (int, *model.AppError) {
@@ -147,18 +159,27 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 }
 
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	parameters, options := parseArguments(args)
+	parameters, options, argumentError := parseArguments(args)
+	if argumentError != "" {
+		p.sendEphemeralPost(args, argumentError)
+		return &model.CommandResponse{}, nil
+	}
 
 	if len(parameters) < 1 {
 		p.sendEphemeralPost(args, commandHelpText)
 		return &model.CommandResponse{}, nil
 	}
 
-	numPostToDelete, err := p.verifyCommandDelete(parameters, args)
-	if err != nil || numPostToDelete == 0 {
-		return &model.CommandResponse{}, err
+	numPostToDelete, appErr := p.verifyCommandDelete(parameters, args)
+	if appErr != nil || numPostToDelete == 0 {
+		return &model.CommandResponse{}, appErr
 	}
 
 	deletePinnedPost := options[optionDeletePinnedPost]
+
+	if options[optionNoConfirmDialog] {
+		appErr := p.deleteLastPostsInChannel(numPostToDelete, args.ChannelId, args.UserId, deletePinnedPost)
+		return &model.CommandResponse{}, appErr
+	}
 	return p.askConfirmCommandDelete(numPostToDelete, args, deletePinnedPost)
 }

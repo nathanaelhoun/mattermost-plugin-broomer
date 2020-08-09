@@ -35,7 +35,7 @@ func (p *Plugin) handleDeletion(w http.ResponseWriter, r *http.Request) {
 
 	numPostToDelete, err := strconv.Atoi(request.State)
 	if err != nil {
-		p.API.LogError("Failed to convert string to int. Bad request.", "err", err.Error())
+		p.API.LogError("Failed to convert string to int. Bad request", "err", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

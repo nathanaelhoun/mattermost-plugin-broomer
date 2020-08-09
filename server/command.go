@@ -14,11 +14,11 @@ const (
 
 	optionDeletePinnedPost = "delete-pinned-posts"
 
-	commandHelpText = "**Delete posts with commands.**\n" +
+	commandHelpText = "## Delete posts with /" + commandTrigger + "\n" +
 		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
 		"\n" +
-		"Available options :\n" +
-		" - `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
+		"### Available options :\n" +
+		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
 )
 
 func (p *Plugin) getCommand() *model.Command {
@@ -26,15 +26,15 @@ func (p *Plugin) getCommand() *model.Command {
 		Trigger:          commandTrigger,
 		AutoComplete:     true,
 		AutoCompleteDesc: "Delete posts",
-		AutoCompleteHint: "[--option / number-of-posts]",
+		AutoCompleteHint: "[number-of-posts]",
 		AutocompleteData: getAutocompleteData(),
 	}
 }
 
 func getAutocompleteData() *model.AutocompleteData {
-	command := model.NewAutocompleteData(commandTrigger, "[--option / number-of-posts]", "Delete posts in the current channel")
+	command := model.NewAutocompleteData(commandTrigger, "[number-of-posts]", "Delete posts in the current channel")
 
-	command.AddTextArgument("Delete the last [number-of-post] posts in this channel.", "[number-of-post]", "[0-9]+")
+	command.AddTextArgument("Delete the last [number-of-post] posts in this channel", "[number-of-post]", "[0-9]+")
 	command.AddNamedTextArgument(optionDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
 
 	return command
@@ -79,7 +79,7 @@ func parseArguments(args *model.CommandArgs) ([]string, map[string]bool) {
 
 func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArgs) (int, *model.AppError) {
 	if len(parameters) < 1 {
-		p.sendEphemeralPost(args, "Please precise the [number-of-post] you want to delete.")
+		p.sendEphemeralPost(args, "Please precise the [number-of-post] you want to delete")
 		return 0, nil
 	}
 
@@ -96,7 +96,7 @@ func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArg
 
 	currentChannel, appErr := p.API.GetChannel(args.ChannelId)
 	if appErr != nil {
-		p.sendEphemeralPost(args, "Error when deleting posts.")
+		p.sendEphemeralPost(args, "Error when deleting posts")
 		return 0, &model.AppError{
 			Message:       "Unable to get channel statistics",
 			DetailedError: appErr.DetailedError,
@@ -104,7 +104,7 @@ func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArg
 	}
 	if currentChannel.TotalMsgCount < numPostToDelete64 {
 		// stop the command because if numPostToDelete > currentChannel.TotalMsgCount, the plugin crashes
-		p.sendEphemeralPost(args, "Cannot delete more posts that there is in this channel.")
+		p.sendEphemeralPost(args, "Cannot delete more posts that there is in this channel")
 		return 0, nil
 	}
 

@@ -46,7 +46,7 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 		if err != nil {
 			isError = true
 			p.API.LogError(
-				"Unable to get post "+postID+" informations.",
+				"Unable to get post "+postID+" informations",
 				"err", err.Error(),
 			)
 			continue // process next post
@@ -78,11 +78,11 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 	strResponse := ""
 
 	if isError {
-		strResponse += "An error has occurred, some post could not be deleted.\n"
+		strResponse += "An error has occurred, some post could not be deleted\n"
 	}
 
 	if isErrorNotAdmin {
-		strResponse += "Some posts have not been deleted because they were not yours.\n"
+		strResponse += "Some posts have not been deleted because they were not yours\n"
 	}
 
 	if numDeletedPost > 0 {
@@ -90,11 +90,11 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 		if numDeletedPost > 1 {
 			plural = "s"
 		}
-		strResponse += fmt.Sprintf("Successfully deleted %d post%s.", numDeletedPost, plural)
+		strResponse += fmt.Sprintf("Successfully deleted %d post%s", numDeletedPost, plural)
 	}
 
 	if strResponse == "" {
-		strResponse = "There are no posts in this channel."
+		strResponse = "There are no posts in this channel"
 	}
 
 	p.sendEphemeralPost(&model.CommandArgs{

@@ -2,20 +2,19 @@
 
 [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
 
-This [mattermost](https://mattermost.org) plugin allow to delete post with a command.
+This [Mattermost](https://mattermost.org) plugin allow to delete posts with a /command.
 
 ![Plugin screenshot](./screenshot.png)
 
-**Supported Mattermost Server Versions: 5.2+** (command autocomplete with Mattermost 5.24+)
+**Supported Mattermost Server Versions: 5.12+** (command autocomplete with Mattermost 5.24+)
 
 ## Features
 
-#### Manage posts with commands
-
 `/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
 
-Available options :
-  _incoming feature_
+### Available options :
+*  `--delete-pinned-posts` Also delete pinned post (disabled by default)
+*  `--confirm` Do not show confirmation dialog
 
 ## Installation
 

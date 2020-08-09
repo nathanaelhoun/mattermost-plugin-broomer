@@ -1,7 +1,7 @@
 {
     "id": "com.github.nathanaelhoun.plugin-clear",
     "name": "Clear",
-    "description": "Delete multiple posts with a command.",
+    "description": "Delete multiple posts with a /command.",
     "version": "0.2.0",
     "min_server_version": "5.12.0",
     "server": {
@@ -10,10 +10,5 @@
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         }
-    },
-    "settings_schema": {
-        "header": "",
-        "footer": "* To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-clear).",
-        "settings": []
     }
 }

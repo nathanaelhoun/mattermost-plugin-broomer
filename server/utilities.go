@@ -27,7 +27,7 @@ func (p *Plugin) sendEphemeralPost(args *model.CommandArgs, message string) *mod
 	)
 }
 
-func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID string) *model.AppError {
+func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string, userID string, deletePinnedPosts bool) *model.AppError {
 	postList, err := p.API.GetPostsForChannel(channelID, 0, numPostToDelete)
 	if err != nil {
 		p.API.LogError(
@@ -39,24 +39,30 @@ func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID s
 
 	isError := false
 	isErrorNotAdmin := false
+	isErrorPinnedPost := false
 	numDeletedPost := 0
 	hasAdminRights := hasAdminRights(p, userID)
 	for _, postID := range postList.Order {
-		if !hasAdminRights {
-			post, err := p.API.GetPost(postID)
-			if err != nil {
-				isError = true
-				p.API.LogError(
-					"Unable to get post "+postID+" informations.",
-					"err", err.Error(),
-				)
-				continue // process next post
-			}
+		post, err := p.API.GetPost(postID)
+		if err != nil {
+			isError = true
+			p.API.LogError(
+				"Unable to get post "+postID+" informations",
+				"err", err.Error(),
+			)
+			continue // process next post
+		}
 
+		if !hasAdminRights {
 			if post.UserId != userID {
 				isErrorNotAdmin = true
 				continue // process next post
 			}
+		}
+
+		if post.IsPinned && !deletePinnedPosts {
+			isErrorPinnedPost = true
+			continue // process next post
 		}
 
 		if err := p.API.DeletePost(postID); err != nil {
@@ -74,11 +80,15 @@ func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID s
 	strResponse := ""
 
 	if isError {
-		strResponse += "An error has occurred, some post could not be deleted.\n"
+		strResponse += "An error has occurred, some post could not be deleted\n"
 	}
 
 	if isErrorNotAdmin {
-		strResponse += "Some posts have not been deleted because they were not yours.\n"
+		strResponse += "Some posts have not been deleted because they were not yours\n"
+	}
+
+	if isErrorPinnedPost {
+		strResponse += "Some posts have not been deleted because they were pinned in the channel\n"
 	}
 
 	if numDeletedPost > 0 {
@@ -86,11 +96,11 @@ func (p *Plugin) deleteLastPosts(numPostToDelete int, channelID string, userID s
 		if numDeletedPost > 1 {
 			plural = "s"
 		}
-		strResponse += fmt.Sprintf("Successfully deleted %d post%s.", numDeletedPost, plural)
+		strResponse += fmt.Sprintf("Successfully deleted %d post%s", numDeletedPost, plural)
 	}
 
 	if strResponse == "" {
-		strResponse = "There are no posts in this channel."
+		strResponse = "There are no posts in this channel"
 	}
 
 	p.sendEphemeralPost(&model.CommandArgs{

@@ -35,14 +35,19 @@ func (p *Plugin) handleDeletion(w http.ResponseWriter, r *http.Request) {
 
 	numPostToDelete, err := strconv.Atoi(request.State)
 	if err != nil {
-		p.API.LogError("Failed to convert string to int. Bad request.", "err", err.Error())
+		p.API.LogError("Failed to convert string to int. Bad request", "err", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
-	if err := p.deleteLastPosts(numPostToDelete, request.ChannelId, request.UserId); err != nil {
+	deletePinnedPost := false
+	if request.Submission["deletePinnedPosts"] == true {
+		deletePinnedPost = true
+	}
+
+	if err := p.deleteLastPostsInChannel(numPostToDelete, request.ChannelId, request.UserId, deletePinnedPost); err != nil {
 		p.API.LogError("Failed to delete posts", "err", err.Error())
 		return
 	}

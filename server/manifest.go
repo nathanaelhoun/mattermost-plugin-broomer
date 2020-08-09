@@ -24,11 +24,6 @@ const manifestStr = `
       "windows-amd64": "server/dist/plugin-windows-amd64.exe"
     },
     "executable": ""
-  },
-  "settings_schema": {
-    "header": "",
-    "footer": "* To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-clear).",
-    "settings": []
   }
 }
 `

@@ -39,6 +39,7 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 
 	isError := false
 	isErrorNotAdmin := false
+	isErrorPinnedPost := false
 	numDeletedPost := 0
 	hasAdminRights := hasAdminRights(p, userID)
 	for _, postID := range postList.Order {
@@ -60,6 +61,7 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 		}
 
 		if post.IsPinned && !deletePinnedPosts {
+			isErrorPinnedPost = true
 			continue // process next post
 		}
 
@@ -83,6 +85,10 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 
 	if isErrorNotAdmin {
 		strResponse += "Some posts have not been deleted because they were not yours\n"
+	}
+
+	if isErrorPinnedPost {
+		strResponse += "Some posts have not been deleted because they were pinned in the channel\n"
 	}
 
 	if numDeletedPost > 0 {

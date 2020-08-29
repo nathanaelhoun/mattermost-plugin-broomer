@@ -1,20 +1,21 @@
-# Plugin Clear (Beta)
+# ![Plugin screenshot](./assets/broom.svg) Plugin Clear (Beta)
 
 [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
 
-This [Mattermost](https://mattermost.org) plugin allow to delete posts with a /command.
+This [Mattermost](https://mattermost.com) plugin allow to delete posts with `/clear`.
 
-![Plugin screenshot](./screenshot.png)
+![Plugin screenshot](./assets/screenshot.png)
 
-**Supported Mattermost Server Versions: 5.12+** (command autocomplete with Mattermost 5.24+)
+**Supported Mattermost Server Versions: 5.24+**
 
 ## Features
 
 `/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
 
 ### Available options :
-*  `--delete-pinned-posts` Also delete pinned post (disabled by default)
-*  `--confirm` Do not show confirmation dialog
+
+-   `--delete-pinned-posts` Also delete pinned post (disabled by default)
+-   `--confirm` Do not show confirmation dialog (can also be turned off for the whole server)
 
 ## Installation
 
@@ -29,6 +30,7 @@ Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-
 ## Development
 
 To avoid having to manually install your plugin, build and deploy your plugin with login credentials:
+
 ```
 export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
 export MM_ADMIN_USERNAME=admin
@@ -37,8 +39,31 @@ make deploy
 ```
 
 or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
+
 ```
 export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
 export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
 make deploy
 ```
+
+If your Mattermost server is running locally, you can enable [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode) to streamline deploying your plugin. Edit your server configuration as follows:
+
+```
+{
+    "ServiceSettings": {
+        ...
+        "EnableLocalMode": true,
+        "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"
+    }
+}
+```
+
+and then deploy your plugin:
+
+```
+make deploy
+```
+
+# Thanks to
+- Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)
+- Mattermost for providing a good software and having a great community

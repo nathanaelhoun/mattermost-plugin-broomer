@@ -23,16 +23,30 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnActivate() error {
-	botUserID, err := p.Helpers.EnsureBot(&model.Bot{
-		Username:    "clearbot",
-		DisplayName: "Clear Bot",
-		Description: "Bot managed by the Clear plugin.",
-	})
+	botUserID, err := p.Helpers.EnsureBot(
+		&model.Bot{
+			Username:    "clearbot",
+			DisplayName: "clear",
+			Description: "Bot managed by the clear plugin.",
+		},
+		plugin.IconImagePath("/assets/broom.svg"),
+		plugin.ProfileImagePath("/assets/broom.png"),
+	)
 	if err != nil {
 		return errors.Wrap(err, "Failed to ensure bot")
+	}
+
+	_, appErr := p.API.UpdateBotActive(botUserID, true)
+	if appErr != nil {
+		return errors.Wrap(appErr, "Failed mark the bot as active")
 	}
 	p.botUserID = botUserID
 
 	// Registering command in OnConfigurationChange()
 	return nil
+}
+
+func (p *Plugin) OnDeactivate() error {
+	_, appErr := p.API.UpdateBotActive(p.botUserID, false)
+	return errors.Wrap(appErr, "Failed to mark the bot as inactive")
 }

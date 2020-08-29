@@ -6,10 +6,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// askConfirmAlways   = "always" // deadcode
+	askConfirmOptional = "optional"
+	askConfirmNever    = "never"
+)
+
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
 // configuration, as well as values computed from the configuration. Any public fields will be
 // deserialized from the Mattermost server configuration in OnConfigurationChange.
-type configuration struct{}
+type configuration struct {
+	RestrictToSysadmins       bool
+	RestrictToSysadminsString string
+	AskConfirm                string
+}
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
 // your configuration has reference types.
@@ -68,7 +78,12 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
 
+	configuration.RestrictToSysadmins = (configuration.RestrictToSysadminsString == "true")
 	p.setConfiguration(configuration)
+
+	if err := p.API.RegisterCommand(p.getCommand()); err != nil {
+		return errors.Wrap(err, "failed to register new command")
+	}
 
 	return nil
 }

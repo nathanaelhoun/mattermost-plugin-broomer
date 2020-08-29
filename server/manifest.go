@@ -14,9 +14,13 @@ const manifestStr = `
 {
   "id": "com.github.nathanaelhoun.plugin-clear",
   "name": "Clear",
-  "description": "Delete multiple posts with a /command.",
+  "description": "Delete multiple posts with /clear",
+  "homepage_url": "https://github.com/nathanaelhoun/mattermost-plugin-clear",
+  "support_url": "https://github.com/nathanaelhoun/mattermost-plugin-clear/issues/new",
+  "release_notes_url": "https://github.com/nathanaelhoun/mattermost-plugin-clear/releases",
+  "icon_path": "assets/broom.svg",
   "version": "0.3.0",
-  "min_server_version": "5.12.0",
+  "min_server_version": "5.24.0",
   "server": {
     "executables": {
       "linux-amd64": "server/dist/plugin-linux-amd64",
@@ -24,6 +28,42 @@ const manifestStr = `
       "windows-amd64": "server/dist/plugin-windows-amd64.exe"
     },
     "executable": ""
+  },
+  "settings_schema": {
+    "header": "To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-clear).",
+    "footer": "Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)",
+    "settings": [
+      {
+        "key": "RestrictToSysadminsString",
+        "display_name": "Restrict to sysadmins",
+        "type": "bool",
+        "help_text": "If true, only System Administrators will see the autocomplete suggestion and be able to trigger the command.",
+        "placeholder": "",
+        "default": "false"
+      },
+      {
+        "key": "AskConfirm",
+        "display_name": "Ask confirmation Dialog",
+        "type": "radio",
+        "help_text": "Choose when to ask users for confirmation via an UI dialog.",
+        "placeholder": "",
+        "default": "optional",
+        "options": [
+          {
+            "display_name": "Always ask",
+            "value": "always"
+          },
+          {
+            "display_name": "Optional (user can skip the confirmation with the argument \"--confirm true\"",
+            "value": "optional"
+          },
+          {
+            "display_name": "Never ask",
+            "value": "never"
+          }
+        ]
+      }
+    ]
   }
 }
 `

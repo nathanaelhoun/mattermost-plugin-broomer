@@ -2,30 +2,9 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
-
-func hasAdminRights(p *Plugin, userID string) bool {
-	user, appErr := p.API.GetUser(userID)
-	if appErr != nil {
-		p.API.LogError("Unable to get user", "err", appErr)
-	}
-
-	return strings.Contains(user.Roles, "system_admin")
-}
-
-func (p *Plugin) sendEphemeralPost(args *model.CommandArgs, message string) *model.Post {
-	return p.API.SendEphemeralPost(
-		args.UserId,
-		&model.Post{
-			UserId:    p.botUserID,
-			ChannelId: args.ChannelId,
-			Message:   message,
-		},
-	)
-}
 
 func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string, userID string, deletePinnedPosts bool) *model.AppError {
 	postList, err := p.API.GetPostsForChannel(channelID, 0, numPostToDelete)
@@ -37,11 +16,21 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 		return err
 	}
 
+	hasPermissionToDeletePost := canDeletePost(p, userID, channelID)
+	hasPermissionToDeleteOthersPosts := canDeleteOthersPosts(p, userID, channelID)
+
+	if !hasPermissionToDeletePost && !hasPermissionToDeleteOthersPosts {
+		p.sendEphemeralPost(&model.CommandArgs{
+			ChannelId: channelID,
+			UserId:    userID,
+		}, "Sorry, you are not permitted to delete posts")
+		return nil
+	}
+
 	isError := false
 	isErrorNotAdmin := false
 	isErrorPinnedPost := false
 	numDeletedPost := 0
-	hasAdminRights := hasAdminRights(p, userID)
 	for _, postID := range postList.Order {
 		post, err := p.API.GetPost(postID)
 		if err != nil {
@@ -53,7 +42,7 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 			continue // process next post
 		}
 
-		if !hasAdminRights {
+		if !hasPermissionToDeleteOthersPosts {
 			if post.UserId != userID {
 				isErrorNotAdmin = true
 				continue // process next post
@@ -84,7 +73,11 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 	}
 
 	if isErrorNotAdmin {
-		strResponse += "Some posts have not been deleted because they were not yours\n"
+		if numDeletedPost == 0 {
+			strResponse += "Sorry, you can only delete your own posts\n"
+		} else {
+			strResponse += "Some posts have not been deleted because they were not yours\n"
+		}
 	}
 
 	if isErrorPinnedPost {

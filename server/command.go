@@ -13,34 +13,42 @@ const (
 	commandTrigger = "clear"
 
 	optionDeletePinnedPost = "delete-pinned-posts"
-	optionNoConfirmDialog  = "confirm"
-
-	commandHelpText = "## Delete posts with /" + commandTrigger + "\n" +
-		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
-		"\n" +
-		"### Available options :\n" +
-		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n" +
-		" * `--" + optionNoConfirmDialog + "` Do not show confirmation dialog\n"
+	optionNoConfirm        = "confirm"
 )
 
 func (p *Plugin) getCommand() *model.Command {
+	cmdAutocompleteData := model.NewAutocompleteData(commandTrigger, "[number-of-posts]", "Delete last posts in the current channel")
+	if p.getConfiguration().RestrictToSysadmins {
+		cmdAutocompleteData.RoleID = "system_admin"
+	}
+
+	cmdAutocompleteData.AddTextArgument("Delete the last [number-of-posts] posts in this channel", "[number-of-posts]", "[0-9]+")
+	cmdAutocompleteData.AddNamedTextArgument(optionDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
+	if p.getConfiguration().AskConfirm == askConfirmOptional {
+		cmdAutocompleteData.AddNamedTextArgument(optionNoConfirm, "Do not show confirmation dialog", "true", "", false)
+	}
+
 	return &model.Command{
 		Trigger:          commandTrigger,
 		AutoComplete:     true,
-		AutoCompleteDesc: "Delete posts",
+		AutoCompleteDesc: "Delete last posts",
 		AutoCompleteHint: "[number-of-posts]",
-		AutocompleteData: getAutocompleteData(),
+		AutocompleteData: cmdAutocompleteData,
 	}
 }
 
-func getAutocompleteData() *model.AutocompleteData {
-	command := model.NewAutocompleteData(commandTrigger, "[number-of-posts]", "Delete posts in the current channel")
+func (p *Plugin) getHelp() string {
+	helpStr := "## Delete posts with /" + commandTrigger + "\n" +
+		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
+		"\n" +
+		"### Available options :\n" +
+		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
 
-	command.AddTextArgument("Delete the last [number-of-post] posts in this channel", "[number-of-post]", "[0-9]+")
-	command.AddNamedTextArgument(optionDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
-	command.AddNamedTextArgument(optionNoConfirmDialog, "Do not show confirmation dialog", "true", "", false)
+	if p.getConfiguration().AskConfirm == askConfirmOptional {
+		helpStr += " * `--" + optionNoConfirm + "` Do not show confirmation dialog\n"
+	}
 
-	return command
+	return helpStr
 }
 
 func parseArguments(args *model.CommandArgs) ([]string, map[string]bool, string) {
@@ -159,6 +167,10 @@ func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.Comman
 }
 
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	if p.getConfiguration().RestrictToSysadmins && !hasAdminRights(p, args.UserId) {
+		return nil, nil
+	}
+
 	parameters, options, argumentError := parseArguments(args)
 	if argumentError != "" {
 		p.sendEphemeralPost(args, argumentError)
@@ -166,7 +178,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if len(parameters) < 1 {
-		p.sendEphemeralPost(args, commandHelpText)
+		p.sendEphemeralPost(args, p.getHelp())
 		return &model.CommandResponse{}, nil
 	}
 
@@ -177,7 +189,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 
 	deletePinnedPost := options[optionDeletePinnedPost]
 
-	if options[optionNoConfirmDialog] {
+	if p.getConfiguration().AskConfirm == askConfirmNever ||
+		(p.getConfiguration().AskConfirm == askConfirmOptional && options[optionNoConfirm]) {
 		appErr := p.deleteLastPostsInChannel(numPostToDelete, args.ChannelId, args.UserId, deletePinnedPost)
 		return &model.CommandResponse{}, appErr
 	}

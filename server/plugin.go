@@ -33,9 +33,6 @@ func (p *Plugin) OnActivate() error {
 	}
 	p.botUserID = botUserID
 
-	if err := p.API.RegisterCommand(p.getCommand()); err != nil {
-		return errors.Wrap(err, "failed to register new command")
-	}
-
+	// Registering command in OnConfigurationChange()
 	return nil
 }

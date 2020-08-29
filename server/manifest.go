@@ -24,6 +24,20 @@ const manifestStr = `
       "windows-amd64": "server/dist/plugin-windows-amd64.exe"
     },
     "executable": ""
+  },
+  "settings_schema": {
+    "header": "",
+    "footer": "To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-clear).",
+    "settings": [
+      {
+        "key": "RestrictToSysadmins",
+        "display_name": "Restrict to sysadmins",
+        "type": "bool",
+        "help_text": "If true, only System Administrators will see the autocomplete suggestion and be able to trigger the command.",
+        "placeholder": "",
+        "default": "false"
+      }
+    ]
   }
 }
 `

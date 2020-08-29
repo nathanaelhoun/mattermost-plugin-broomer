@@ -3,13 +3,10 @@ run:
   modules-download-mode: readonly
 
 linters-settings:
-  goconst:
-    min-len: 2
-    min-occurrences: 2
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/nathanaelhoun/mattermost-plugin-clear
+    local-prefixes: github.com/mattermost/mattermost-starter-template
   golint:
     min-confidence: 0
   govet:
@@ -24,7 +21,6 @@ linters:
     - bodyclose
     - deadcode
     - errcheck
-    - goconst
     - gocritic
     - gofmt
     - goimports
@@ -33,7 +29,6 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - misspell
     - nakedret
     - staticcheck
@@ -49,6 +44,7 @@ issues:
   exclude-rules:
     - path: server/manifest.go
       linters:
+        - deadcode
         - unused
         - varcheck
     - path: server/configuration.go
@@ -56,5 +52,5 @@ issues:
         - unused
     - path: _test\.go
       linters:
-        - goconst
+        - bodyclose
         - scopelint # https://github.com/kyoh86/scopelint/issues/4

@@ -1,7 +1,6 @@
 # <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer (Beta) [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-broomer/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-broomer)
 
-
-This [Mattermost](https://mattermost.com) plugin allow to delete posts with `/broom`.
+Clean your channels with `/broom`!
 
 ![Plugin screenshot](./assets/screenshot.gif)
 

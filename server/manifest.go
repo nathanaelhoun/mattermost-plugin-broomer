@@ -12,12 +12,12 @@ var manifest *model.Manifest
 
 const manifestStr = `
 {
-  "id": "com.github.nathanaelhoun.plugin-clear",
-  "name": "Clear",
-  "description": "Delete multiple posts with /clear",
-  "homepage_url": "https://github.com/nathanaelhoun/mattermost-plugin-clear",
-  "support_url": "https://github.com/nathanaelhoun/mattermost-plugin-clear/issues/new",
-  "release_notes_url": "https://github.com/nathanaelhoun/mattermost-plugin-clear/releases",
+  "id": "com.github.nathanaelhoun.plugin-broomer",
+  "name": "Broomer",
+  "description": "Clean your channels with /broom",
+  "homepage_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer",
+  "support_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/issues/new",
+  "release_notes_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/releases",
   "icon_path": "assets/broom.svg",
   "version": "0.3.0",
   "min_server_version": "5.24.0",
@@ -30,7 +30,7 @@ const manifestStr = `
     "executable": ""
   },
   "settings_schema": {
-    "header": "To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-clear).",
+    "header": "To report an issue, make a suggestion or a contribution, [check the repository](https://github.com/nathanaelhoun/mattermost-plugin-broomer).",
     "footer": "Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)",
     "settings": [
       {

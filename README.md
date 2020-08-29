@@ -1,15 +1,15 @@
-# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Clear (Beta) [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
+# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer (Beta) [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-broomer/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-broomer)
 
 
-This [Mattermost](https://mattermost.com) plugin allow to delete posts with `/clear`.
+This [Mattermost](https://mattermost.com) plugin allow to delete posts with `/broom`.
 
-![Plugin screenshot](./assets/screenshot.png)
+![Plugin screenshot](./assets/screenshot.gif)
 
 **Supported Mattermost Server Versions: 5.24+**
 
 ## Features
 
-`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
+`/broom [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
 
 ### Available options :
 
@@ -18,13 +18,13 @@ This [Mattermost](https://mattermost.com) plugin allow to delete posts with `/cl
 
 ## Installation
 
-1. Go to the [releases page of this Github repository](https://github.com/nathanaelhoun/mattermost-plugin-clear/releases) and download the latest release for your Mattermost server.
+1. Go to the [releases page of this Github repository](https://github.com/nathanaelhoun/mattermost-plugin-broomer/releases) and download the latest release for your Mattermost server.
 2. Upload this file in the Mattermost System Console under **System Console > Plugins > Management** to install the plugin. To learn more about how to upload a plugin, [see the documentation](https://docs.mattermost.com/administration/plugins.html#plugin-uploads).
 3. Activate the plugin at **System Console > Plugins > Management**.
 
 ## Contribution
 
-Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-clear/issues/new/choose) to submit possible improvements. PR are also welcomed!
+Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-broomer/issues/new/choose) to submit possible improvements. PR are also welcomed!
 
 ## Development
 

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	commandTrigger = "clear"
+	commandTrigger = "broom"
 
 	optionDeletePinnedPost = "delete-pinned-posts"
 	optionNoConfirm        = "confirm"
@@ -38,10 +38,10 @@ func (p *Plugin) getCommand() *model.Command {
 }
 
 func (p *Plugin) getHelp() string {
-	helpStr := "## Delete posts with /" + commandTrigger + "\n" +
-		"`/clear [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
+	helpStr := "## Broomer Plugin\n" +
+		"`/" + commandTrigger + " [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
 		"\n" +
-		"### Available options :\n" +
+		"### Available arguments :\n" +
 		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
 
 	if p.getConfiguration().AskConfirm == askConfirmOptional {

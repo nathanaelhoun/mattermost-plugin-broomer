@@ -1,6 +1,5 @@
-# ![Plugin screenshot](./assets/broom.svg) Plugin Clear (Beta)
+# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Clear (Beta) [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
 
-[![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-clear/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-clear)
 
 This [Mattermost](https://mattermost.com) plugin allow to delete posts with `/clear`.
 

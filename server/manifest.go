@@ -16,10 +16,10 @@ const manifestStr = `
   "name": "Broomer",
   "description": "Clean your channels with /broom",
   "homepage_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer",
-  "support_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/issues/new",
+  "support_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/issues/new/choose",
   "release_notes_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/releases",
   "icon_path": "assets/broom.svg",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "min_server_version": "5.24.0",
   "server": {
     "executables": {

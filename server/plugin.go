@@ -25,9 +25,9 @@ type Plugin struct {
 func (p *Plugin) OnActivate() error {
 	botUserID, err := p.Helpers.EnsureBot(
 		&model.Bot{
-			Username:    "clearbot",
-			DisplayName: "clear",
-			Description: "Bot managed by the clear plugin.",
+			Username:    "broomerbot",
+			DisplayName: "Broomer",
+			Description: "Bot managed by the Broomer plugin.",
 		},
 		plugin.IconImagePath("/assets/broom.svg"),
 		plugin.ProfileImagePath("/assets/broom.png"),

@@ -6,7 +6,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/nathanaelhoun/mattermost-plugin-clear
+    local-prefixes: github.com/nathanaelhoun/mattermost-plugin-broomer
   golint:
     min-confidence: 0
   govet:

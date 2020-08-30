@@ -34,7 +34,7 @@ const manifestStr = `
     "footer": "Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)",
     "settings": [
       {
-        "key": "RestrictToSysadminsString",
+        "key": "RestrictToSysadmins",
         "display_name": "Restrict to sysadmins",
         "type": "bool",
         "help_text": "If true, only System Administrators will see the autocomplete suggestion and be able to trigger the command.",

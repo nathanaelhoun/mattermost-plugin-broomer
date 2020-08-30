@@ -30,7 +30,7 @@ func canDeleteOthersPosts(p *Plugin, userID string, channelID string) bool {
 }
 
 // Return "s" if the given number is > 1
-func getPluralChar(number int64) string {
+func getPluralChar(number int) string {
 	if 1 < number {
 		return "s"
 	}

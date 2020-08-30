@@ -71,7 +71,7 @@ func (p *Plugin) sendDialogDeleteLast(cmdArgs *model.CommandArgs, numPostToDelet
 			Title: fmt.Sprintf(
 				"Do you want to delete the last %d post%s in this channel?",
 				numPostToDelete,
-				getPluralChar(int64(numPostToDelete)),
+				getPluralChar(numPostToDelete),
 			),
 			SubmitLabel:    "Confirm",
 			NotifyOnCancel: false,
@@ -114,14 +114,9 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 
 	beginningPost := p.sendEphemeralPost(userID, channelID, messageBeginning)
 
-	// GetPostsForChannel returns the lasts posts AND all the posts of all the linked threads in postList.Posts.
-	// So we take only those that are in postList.Order
-	postListToDelete := make(map[string]*model.Post, numPostToDelete)
-	for _, postID := range postList.Order {
-		postListToDelete[postID] = postList.Posts[postID]
-	}
+	postListToDelete := getRelevantPostMap(postList)
 
-	p.deletePostsAndTellUser(
+	result := p.deletePostsAndTellUser(
 		postListToDelete,
 		&deletePostOptions{
 			claimerID:         userID,
@@ -129,6 +124,8 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 			deleteOthersPosts: canDeleteOthersPosts(p, userID, channelID),
 			deletePinnedPosts: deletePinnedPosts,
 		},
-		beginningPost,
 	)
+
+	p.API.DeleteEphemeralPost(userID, beginningPost.Id)
+	p.sendEphemeralPost(userID, channelID, getResponseStringFromResults(result))
 }

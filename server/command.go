@@ -1,11 +1,8 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -18,7 +15,7 @@ const (
 	lastHelpText = "Delete the last [number-of-posts] posts of the channel"
 
 	filterTrigger   = "filter"
-	filterHint      = "[--from]"
+	filterHint      = "[--from|--after|--before]"
 	filterHelpText  = "To Be Done : Clean this channel with filters"
 	filterArgAfter  = "after"
 	filterArgBefore = "before"
@@ -35,7 +32,7 @@ const (
 )
 
 // This type define an error made by the user (incorrect argument, etc).
-// It should not be logged but sent back to the user
+// It should not be logged by the server but sent back to the user
 type userError error
 
 func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, disableConfirmDialog bool) {
@@ -83,8 +80,8 @@ func getHelp(conf *configuration) string {
 		" * `/" + commandTrigger + " " + lastTrigger + " " + lastHint + "` " + lastHelpText + "\n" +
 		" * `/" + commandTrigger + " " + filterTrigger + " " + filterHint + "` " + filterHelpText + "\n" +
 		"     * `--" + filterArgAfter + " [postID|postURL]` Delete posts after this one\n" +
-		"     * `--" + filterArgAfter + " [postID|postURL]` Delete posts before this one\n" +
-		"     * `--" + filterArgAfter + " [@username]` Delete posts posted by a specific user\n" +
+		"     * `--" + filterArgBefore + " [postID|postURL]` Delete posts before this one\n" +
+		"     * `--" + filterArgFrom + " [@username]` Delete posts posted by a specific user\n" +
 		// TODO : explains arguments furthers
 		"\n" +
 		"### Global arguments :\n" +
@@ -97,75 +94,24 @@ func getHelp(conf *configuration) string {
 	return helpStr
 }
 
-func parseCommandArgs(args *model.CommandArgs) (string, []string, map[string]bool, userError) {
-	subcommand := ""
-	parameters := []string{}
-	namedArgs := make(map[string]bool)
-
-	nextIsNamedTextArgumentValue := false
-	namedTextArgumentName := ""
-
-	for i, commandArg := range strings.Fields(args.Command) {
-		if i == 0 {
-			continue // skip '/commandTrigger'
-		}
-
-		if i == 1 {
-			subcommand = commandArg
-			continue
-		}
-
-		if nextIsNamedTextArgumentValue {
-			// NamedTextArgument should only be "true" or "false" in this plugin
-			switch commandArg {
-			case "false":
-				delete(namedArgs, namedTextArgumentName)
-			case "true":
-				break
-			default:
-				return "", nil, nil, errors.Errorf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
-			}
-
-			nextIsNamedTextArgumentValue = false
-			namedTextArgumentName = ""
-			continue
-		}
-
-		if strings.HasPrefix(commandArg, "--") {
-			optionName := commandArg[2:]
-			namedArgs[optionName] = true
-			nextIsNamedTextArgumentValue = true
-			namedTextArgumentName = optionName
-			continue
-		}
-
-		parameters = append(parameters, commandArg)
-	}
-
-	if nextIsNamedTextArgumentValue {
-		return "", nil, nil, errors.Errorf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
-	}
-
-	return subcommand, parameters, namedArgs, nil
-}
-
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	// Respond "no trigger found" if the user is not authorized
 	if p.getConfiguration().RestrictToSysadmins && !isSysadmin(p, args.UserId) {
 		return nil, nil
 	}
 
-	subcommand, parameters, options, userErr := parseCommandArgs(args)
+	subcommand, options, filters, userErr := p.parseAndCheckCommandArgs(args)
+	p.API.LogDebug("Parsed command", "subcommand", subcommand, "options", options, "filters", filters)
 	if userErr != nil {
 		return p.respondEphemeralResponse(args, userErr.Error()), nil
 	}
 
 	switch subcommand {
 	case lastTrigger:
-		return p.executeCommandLast(args, parameters, options)
+		return p.executeCommandLast(options)
 
 	case filterTrigger:
-		return p.executeCommandFilter(args, parameters, options)
+		return p.executeCommandFilter(options, filters)
 
 	case helpTrigger:
 		fallthrough

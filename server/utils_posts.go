@@ -18,15 +18,17 @@ func getRelevantPostMap(postList *model.PostList) map[string]*model.Post {
 	return relevantPosts
 }
 
-type deletePostOptions struct {
-	claimerID         string
-	channelID         string
-	deletePinnedPosts bool
-	deleteOthersPosts bool
+type delOptions struct {
+	userID                string
+	channelID             string
+	numPost               int
+	optDeletePinnedPosts  bool
+	optNoConfirmDialog    bool
+	permDeleteOthersPosts bool
 }
 
-type deletePostResult struct {
-	postsDeleted       int
+type delResults struct {
+	numPostsDeleted    int
 	technicalErrors    int
 	notPermittedErrors int
 	pinnedPostErrors   int
@@ -34,8 +36,8 @@ type deletePostResult struct {
 
 // Assuming the user has the rights to delete the posts
 // ! This check has to be made before!
-func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *deletePostOptions) *deletePostResult {
-	result := new(deletePostResult)
+func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *delOptions) *delResults {
+	result := new(delResults)
 
 	for _, postID := range postList.Order {
 		post, ok := postList.Posts[postID]
@@ -45,12 +47,12 @@ func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *delet
 			continue
 		}
 
-		if !options.deleteOthersPosts && post.UserId != options.claimerID {
+		if !options.permDeleteOthersPosts && post.UserId != options.userID {
 			result.notPermittedErrors++
 			continue // process next post
 		}
 
-		if options.deletePinnedPosts && post.IsPinned {
+		if options.optDeletePinnedPosts && post.IsPinned {
 			result.pinnedPostErrors++
 			continue // process next post
 		}
@@ -58,7 +60,7 @@ func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *delet
 		if post.RootId != "" {
 			// The post is in a thread: skip it if the root will be also deleted
 			if _, ok := postList.Posts[post.RootId]; ok {
-				result.postsDeleted++
+				result.numPostsDeleted++
 				continue
 			}
 		}
@@ -76,13 +78,13 @@ func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *delet
 			continue
 		}
 
-		result.postsDeleted++
+		result.numPostsDeleted++
 	}
 
 	return result
 }
 
-func getResponseStringFromResults(result *deletePostResult) string {
+func getResponseStringFromResults(result *delResults) string {
 	strResponse := ""
 
 	if result.technicalErrors > 0 {
@@ -102,7 +104,7 @@ func getResponseStringFromResults(result *deletePostResult) string {
 	}
 
 	if result.notPermittedErrors > 0 {
-		if result.postsDeleted == 0 {
+		if result.numPostsDeleted == 0 {
 			strResponse += "Sorry, you are only allowed to delete your own posts\n"
 		} else {
 			strResponse += fmt.Sprintf(
@@ -113,11 +115,11 @@ func getResponseStringFromResults(result *deletePostResult) string {
 		}
 	}
 
-	if result.postsDeleted > 0 {
+	if result.numPostsDeleted > 0 {
 		strResponse += fmt.Sprintf(
 			"Successfully deleted %d post%s",
-			result.postsDeleted,
-			getPluralChar(result.postsDeleted),
+			result.numPostsDeleted,
+			getPluralChar(result.numPostsDeleted),
 		)
 	}
 

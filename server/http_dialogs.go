@@ -29,10 +29,11 @@ func (p *Plugin) dialogDeleteLast(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	deletePinnedPost := false
-	if request.Submission["deletePinnedPosts"] == true {
-		deletePinnedPost = true
-	}
-
-	p.deleteLastPostsInChannel(numPostToDelete, request.ChannelId, request.UserId, deletePinnedPost)
+	p.deleteLastPostsInChannel(&delOptions{
+		channelID:             request.ChannelId,
+		userID:                request.UserId,
+		numPost:               numPostToDelete,
+		optDeletePinnedPosts:  request.Submission["deletePinnedPost"] == "true",
+		permDeleteOthersPosts: canDeleteOthersPosts(p, request.UserId, request.ChannelId),
+	})
 }

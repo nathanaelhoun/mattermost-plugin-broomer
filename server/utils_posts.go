@@ -23,7 +23,6 @@ type deletePostOptions struct {
 	channelID         string
 	deletePinnedPosts bool
 	deleteOthersPosts bool
-	// TODO: add others options
 }
 
 type deletePostResult struct {
@@ -35,10 +34,17 @@ type deletePostResult struct {
 
 // Assuming the user has the rights to delete the posts
 // ! This check has to be made before!
-func (p *Plugin) deletePostsAndTellUser(postsToDelete map[string]*model.Post, options *deletePostOptions) *deletePostResult {
+func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *deletePostOptions) *deletePostResult {
 	result := new(deletePostResult)
 
-	for _, post := range postsToDelete {
+	for _, postID := range postList.Order {
+		post, ok := postList.Posts[postID]
+		if !ok {
+			result.technicalErrors++
+			p.API.LogError("This postID doesn't match any stored post. This shouldn't happen.", "postID", postID)
+			continue
+		}
+
 		if !options.deleteOthersPosts && post.UserId != options.claimerID {
 			result.notPermittedErrors++
 			continue // process next post
@@ -51,7 +57,7 @@ func (p *Plugin) deletePostsAndTellUser(postsToDelete map[string]*model.Post, op
 
 		if post.RootId != "" {
 			// The post is in a thread: skip it if the root will be also deleted
-			if _, ok := postsToDelete[post.RootId]; ok {
+			if _, ok := postList.Posts[post.RootId]; ok {
 				result.postsDeleted++
 				continue
 			}

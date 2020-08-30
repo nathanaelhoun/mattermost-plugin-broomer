@@ -117,7 +117,10 @@ func (p *Plugin) deleteLastPostsInChannel(numPostToDelete int, channelID string,
 	postListToDelete := getRelevantPostMap(postList)
 
 	result := p.deletePostsAndTellUser(
-		postListToDelete,
+		&model.PostList{
+			Order: postList.Order,
+			Posts: postListToDelete,
+		},
 		&deletePostOptions{
 			claimerID:         userID,
 			channelID:         channelID,

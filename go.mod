@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-plugin-starter-template
+module github.com/nathanaelhoun/mattermost-plugin-broomer
 
 go 1.12
 

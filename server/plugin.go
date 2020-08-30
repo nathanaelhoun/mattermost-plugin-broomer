@@ -23,6 +23,10 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnActivate() error {
+	if p.API.GetConfig().ServiceSettings.SiteURL == nil {
+		return errors.Errorf("SiteURL is not configured. Please head to the System Console > Environment > Web Server > Site URL")
+	}
+
 	botUserID, err := p.Helpers.EnsureBot(
 		&model.Bot{
 			Username:    "broomerbot",

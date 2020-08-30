@@ -1,77 +1,129 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/pkg/errors"
 )
 
 const (
-	commandTrigger = "broom"
+	commandTrigger  = "broom"
+	commandHint     = "[subcommand]"
+	commandHelpText = "Clean the channel by removing posts. Available commands: " + lastTrigger + ", " + filterTrigger + ", " + helpTrigger
 
-	optionDeletePinnedPost = "delete-pinned-posts"
-	optionNoConfirm        = "confirm"
+	lastTrigger  = "last"
+	lastHint     = "[number-of-posts]"
+	lastHelpText = "Delete the last [number-of-posts] posts of the channel"
+
+	filterTrigger   = "filter"
+	filterHint      = "[--from]"
+	filterHelpText  = "To Be Done : Clean this channel with filters"
+	filterArgAfter  = "after"
+	filterArgBefore = "before"
+	filterArgFrom   = "from"
+
+	helpTrigger  = "help"
+	helpHint     = ""
+	helpHelpText = "Learn how to broom"
+
+	messageBeginning = "Beginning housecleaning, please wait..."
+
+	argDeletePinnedPost = "delete-pinned-posts"
+	argNoConfirm        = "confirm"
 )
 
-func (p *Plugin) getCommand() *model.Command {
-	cmdAutocompleteData := model.NewAutocompleteData(commandTrigger, "[number-of-posts]", "Delete last posts in the current channel")
-	if p.getConfiguration().RestrictToSysadmins {
+// This type define an error made by the user (incorrect argument, etc).
+// It should not be logged but sent back to the user
+type userError error
+
+func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, disableConfirmDialog bool) {
+	cmd.AddNamedTextArgument(argDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
+	if disableConfirmDialog {
+		cmd.AddNamedTextArgument(argNoConfirm, "Do not show confirmation dialog", "true", "", false)
+	}
+}
+
+func getCommand(conf *configuration) *model.Command {
+	cmdAutocompleteData := model.NewAutocompleteData(commandTrigger, commandHint, commandHelpText)
+	if conf.RestrictToSysadmins {
 		cmdAutocompleteData.RoleID = "system_admin"
 	}
 
-	cmdAutocompleteData.AddTextArgument("Delete the last [number-of-posts] posts in this channel", "[number-of-posts]", "[0-9]+")
-	cmdAutocompleteData.AddNamedTextArgument(optionDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
-	if p.getConfiguration().AskConfirm == askConfirmOptional {
-		cmdAutocompleteData.AddNamedTextArgument(optionNoConfirm, "Do not show confirmation dialog", "true", "", false)
-	}
+	last := model.NewAutocompleteData(lastTrigger, lastHint, lastHelpText)
+	last.AddTextArgument(last.HelpText, lastHint, "[0-9]+")
+	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == AskConfirmOptional)
+
+	filter := model.NewAutocompleteData(filterTrigger, filterHint, filterHelpText)
+	filter.AddNamedTextArgument(filterArgAfter, "Delete posts after this one", "[postID|postURL]", "", false)
+	filter.AddNamedTextArgument(filterArgBefore, "Delete posts before this one", "[postID|postURL]", "", false)
+	filter.AddNamedTextArgument(filterArgFrom, "Delete posts posted by a specific user", "[@username]", "@.+", false)
+	addAllNamedTextArgumentsToCmd(filter, conf.AskConfirm == AskConfirmOptional)
+
+	help := model.NewAutocompleteData(helpTrigger, helpHint, helpHelpText)
+
+	cmdAutocompleteData.AddCommand(last)
+	cmdAutocompleteData.AddCommand(filter)
+	cmdAutocompleteData.AddCommand(help)
 
 	return &model.Command{
 		Trigger:          commandTrigger,
 		AutoComplete:     true,
-		AutoCompleteDesc: "Delete last posts",
-		AutoCompleteHint: "[number-of-posts]",
+		AutoCompleteDesc: commandHelpText,
+		AutoCompleteHint: commandHint,
 		AutocompleteData: cmdAutocompleteData,
 	}
 }
 
-func (p *Plugin) getHelp() string {
+func getHelp(conf *configuration) string {
 	helpStr := "## Broomer Plugin\n" +
-		"`/" + commandTrigger + " [number-of-post]` Delete the last `[number-of-post]` posts in the current channel\n" +
+		"Easily clean the current channel with this magic broom.\n" +
 		"\n" +
-		"### Available arguments :\n" +
-		" * `--" + optionDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
+		" * `/" + commandTrigger + " " + lastTrigger + " " + lastHint + "` " + lastHelpText + "\n" +
+		" * `/" + commandTrigger + " " + filterTrigger + " " + filterHint + "` " + filterHelpText + "\n" +
+		"     * `--" + filterArgAfter + " [postID|postURL]` Delete posts after this one\n" +
+		"     * `--" + filterArgAfter + " [postID|postURL]` Delete posts before this one\n" +
+		"     * `--" + filterArgAfter + " [@username]` Delete posts posted by a specific user\n" +
+		// TODO : explains arguments furthers
+		"\n" +
+		"### Global arguments :\n" +
+		" * `--" + argDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
 
-	if p.getConfiguration().AskConfirm == askConfirmOptional {
-		helpStr += " * `--" + optionNoConfirm + "` Do not show confirmation dialog\n"
+	if conf.AskConfirm == AskConfirmOptional {
+		helpStr += " * `--" + argNoConfirm + "` Do not show confirmation dialog\n"
 	}
 
 	return helpStr
 }
 
-func parseArguments(args *model.CommandArgs) ([]string, map[string]bool, string) {
+func parseCommandArgs(args *model.CommandArgs) (string, []string, map[string]bool, userError) {
+	subcommand := ""
 	parameters := []string{}
-	options := make(map[string]bool)
+	namedArgs := make(map[string]bool)
 
 	nextIsNamedTextArgumentValue := false
 	namedTextArgumentName := ""
 
-	for position, arg := range strings.Fields(args.Command) {
-		if position == 0 {
+	for i, commandArg := range strings.Fields(args.Command) {
+		if i == 0 {
 			continue // skip '/commandTrigger'
+		}
+
+		if i == 1 {
+			subcommand = commandArg
+			continue
 		}
 
 		if nextIsNamedTextArgumentValue {
 			// NamedTextArgument should only be "true" or "false" in this plugin
-			switch arg {
+			switch commandArg {
 			case "false":
-				delete(options, namedTextArgumentName)
+				delete(namedArgs, namedTextArgumentName)
 			case "true":
 				break
 			default:
-				return nil, nil, fmt.Sprintf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
+				return "", nil, nil, errors.Errorf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
 			}
 
 			nextIsNamedTextArgumentValue = false
@@ -79,120 +131,45 @@ func parseArguments(args *model.CommandArgs) ([]string, map[string]bool, string)
 			continue
 		}
 
-		if strings.HasPrefix(arg, "--") {
-			optionName := arg[2:]
-			options[optionName] = true
+		if strings.HasPrefix(commandArg, "--") {
+			optionName := commandArg[2:]
+			namedArgs[optionName] = true
 			nextIsNamedTextArgumentValue = true
 			namedTextArgumentName = optionName
 			continue
 		}
 
-		parameters = append(parameters, arg)
+		parameters = append(parameters, commandArg)
 	}
 
 	if nextIsNamedTextArgumentValue {
-		return nil, nil, fmt.Sprintf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
+		return "", nil, nil, errors.Errorf("Invalid value for argument `--%s`, must be `true` or `false`.", namedTextArgumentName)
 	}
 
-	return parameters, options, ""
-}
-
-func (p *Plugin) verifyCommandDelete(parameters []string, args *model.CommandArgs) (int, *model.AppError) {
-	if len(parameters) < 1 {
-		p.sendEphemeralPost(args, "Please precise the [number-of-post] you want to delete")
-		return 0, nil
-	}
-
-	numPostToDelete64, err := strconv.ParseInt(parameters[0], 10, 0)
-	if err != nil {
-		p.sendEphemeralPost(args, "Incorrect argument. [number-of-post] must be an integer")
-		return 0, nil
-	}
-
-	if numPostToDelete64 < 1 {
-		p.sendEphemeralPost(args, "Invalid number of posts")
-		return 0, nil
-	}
-
-	currentChannel, appErr := p.API.GetChannel(args.ChannelId)
-	if appErr != nil {
-		p.sendEphemeralPost(args, "Error when deleting posts")
-		return 0, &model.AppError{
-			Message:       "Unable to get channel statistics",
-			DetailedError: appErr.DetailedError,
-		}
-	}
-	if currentChannel.TotalMsgCount < numPostToDelete64 {
-		// stop the command because if numPostToDelete > currentChannel.TotalMsgCount, the plugin crashes
-		p.sendEphemeralPost(args, "Cannot delete more posts that there is in this channel")
-		return 0, nil
-	}
-
-	return int(numPostToDelete64), nil
-}
-
-func (p *Plugin) askConfirmCommandDelete(numPostToDelete int, args *model.CommandArgs, deletePinnedPosts bool) (*model.CommandResponse, *model.AppError) {
-	serverConfig := p.API.GetConfig()
-
-	dialog := &model.OpenDialogRequest{
-		TriggerId: args.TriggerId,
-		URL:       fmt.Sprintf("%s/plugins/%s/dialog/deletion", *serverConfig.ServiceSettings.SiteURL, manifest.Id),
-		Dialog: model.Dialog{
-			CallbackId:     "confirmPostDeletion",
-			Title:          fmt.Sprintf("Do you want to delete the last %d posts in this channel?", numPostToDelete),
-			SubmitLabel:    "Confirm",
-			NotifyOnCancel: false,
-			State:          strconv.Itoa(numPostToDelete),
-			Elements: []model.DialogElement{
-				{
-					Type:        "bool",
-					Name:        "deletePinnedPosts",
-					DisplayName: "Delete pinned posts ?",
-					HelpText:    "Pinned posts are keept by default",
-					Default:     strconv.FormatBool(deletePinnedPosts),
-					Optional:    true,
-				},
-			},
-		},
-	}
-
-	if err := p.API.OpenInteractiveDialog(*dialog); err != nil {
-		errorMessage := "Failed to open Interactive Dialog"
-		p.API.LogError(errorMessage, "err", err.Error())
-		p.sendEphemeralPost(args, errorMessage)
-		return &model.CommandResponse{}, err
-	}
-
-	return &model.CommandResponse{}, nil
+	return subcommand, parameters, namedArgs, nil
 }
 
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	if p.getConfiguration().RestrictToSysadmins && !hasAdminRights(p, args.UserId) {
+	// Respond "no trigger found" if the user is not authorized
+	if p.getConfiguration().RestrictToSysadmins && !isSysadmin(p, args.UserId) {
 		return nil, nil
 	}
 
-	parameters, options, argumentError := parseArguments(args)
-	if argumentError != "" {
-		p.sendEphemeralPost(args, argumentError)
-		return &model.CommandResponse{}, nil
+	subcommand, parameters, options, userErr := parseCommandArgs(args)
+	if userErr != nil {
+		return p.respondEphemeralResponse(args, userErr.Error()), nil
 	}
 
-	if len(parameters) < 1 {
-		p.sendEphemeralPost(args, p.getHelp())
-		return &model.CommandResponse{}, nil
-	}
+	switch subcommand {
+	case lastTrigger:
+		return p.executeCommandLast(args, parameters, options)
 
-	numPostToDelete, appErr := p.verifyCommandDelete(parameters, args)
-	if appErr != nil || numPostToDelete == 0 {
-		return &model.CommandResponse{}, appErr
-	}
+	case filterTrigger:
+		return p.executeCommandFilter(args, parameters, options)
 
-	deletePinnedPost := options[optionDeletePinnedPost]
-
-	if p.getConfiguration().AskConfirm == askConfirmNever ||
-		(p.getConfiguration().AskConfirm == askConfirmOptional && options[optionNoConfirm]) {
-		appErr := p.deleteLastPostsInChannel(numPostToDelete, args.ChannelId, args.UserId, deletePinnedPost)
-		return &model.CommandResponse{}, appErr
+	case helpTrigger:
+		fallthrough
+	default:
+		return p.respondEphemeralResponse(args, getHelp(p.getConfiguration())), nil
 	}
-	return p.askConfirmCommandDelete(numPostToDelete, args, deletePinnedPost)
 }

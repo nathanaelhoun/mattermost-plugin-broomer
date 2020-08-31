@@ -54,6 +54,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 			}
 			argValue := split[i]
 
+			// TODO : improve parser with multiple users name after --from (and document it)
 			argValueString, argValueBool, userErr := processNamedArgValue(p, argName, argValue, options, filters)
 			if userErr != nil {
 				return subcommand, nil, nil, userErr

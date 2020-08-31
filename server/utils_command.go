@@ -29,8 +29,6 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 	split := strings.Fields(args.Command)
 
 	for i := 1; i < len(split); i++ { // Initialize to 1 to skip '/commandTrigger'
-		p.API.LogDebug("Parsed command", "subcommand", subcommand, "options", options, "filters", filters) // TODO remove
-
 		if i == 1 {
 			subcommand = split[i]
 			if subcommand == helpTrigger {

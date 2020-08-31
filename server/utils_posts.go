@@ -7,15 +7,16 @@ import (
 )
 
 // model.PostList.Posts contains the searched posts AND all the posts of all the linked threads
-// This method filters out the unwanted posts and return a map with the relevant ones
-func getRelevantPostMap(postList *model.PostList) map[string]*model.Post {
+// This method filters out the unwanted posts and return the postList with the relevant posts
+func getRelevantPostList(postList *model.PostList) *model.PostList {
 	relevantPosts := make(map[string]*model.Post, len(postList.Order))
 
 	for _, postID := range postList.Order {
 		relevantPosts[postID] = postList.Posts[postID]
 	}
 
-	return relevantPosts
+	postList.Posts = relevantPosts
+	return postList
 }
 
 type delOptions struct {
@@ -36,7 +37,8 @@ type delResults struct {
 
 // Assuming the user has the rights to delete the posts
 // ! This check has to be made before!
-func (p *Plugin) deletePostsAndTellUser(postList *model.PostList, options *delOptions) *delResults {
+func (p *Plugin) deletePosts(postList *model.PostList, options *delOptions) *delResults {
+	p.API.LogDebug("Deleting these posts", "postIds", postList.Order)
 	result := new(delResults)
 
 	for _, postID := range postList.Order {
@@ -124,7 +126,7 @@ func getResponseStringFromResults(result *delResults) string {
 	}
 
 	if strResponse == "" {
-		strResponse = "There are no posts in this channel"
+		strResponse = "No post matches your filters: this channel looks clean!"
 	}
 
 	return strResponse

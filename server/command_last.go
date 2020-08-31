@@ -22,11 +22,14 @@ func (p *Plugin) executeCommandLast(options *delOptions) (*model.CommandResponse
 }
 
 func (p *Plugin) sendDialogDeleteLast(options *delOptions) {
-	siteURL := p.API.GetConfig().ServiceSettings.SiteURL
+	siteURL := ""
+	if p.API.GetConfig().ServiceSettings.SiteURL != nil {
+		siteURL = *p.API.GetConfig().ServiceSettings.SiteURL
+	}
 
 	dialog := &model.OpenDialogRequest{
 		TriggerId: options.userID,
-		URL:       fmt.Sprintf("%s/plugins/%s%s", *siteURL, manifest.Id, routeDialogDeleteLast),
+		URL:       fmt.Sprintf("%s/plugins/%s%s", siteURL, manifest.Id, routeDialogDeleteLast),
 		Dialog: model.Dialog{
 			CallbackId: "confirmPostDeletion",
 			Title: fmt.Sprintf(
@@ -58,6 +61,8 @@ func (p *Plugin) sendDialogDeleteLast(options *delOptions) {
 }
 
 func (p *Plugin) deleteLastPostsInChannel(options *delOptions) {
+	p.API.LogDebug("Delete posts last posts", "channelID", options.channelID, "options", options)
+
 	postList, appErr := p.API.GetPostsForChannel(options.channelID, 0, options.numPost)
 	if appErr != nil {
 		p.API.LogError(
@@ -75,16 +80,13 @@ func (p *Plugin) deleteLastPostsInChannel(options *delOptions) {
 
 	beginningPost := p.sendEphemeralPost(options.userID, options.channelID, messageBeginning)
 
-	postListToDelete := getRelevantPostMap(postList)
+	postListToDelete := getRelevantPostList(postList)
 
-	result := p.deletePostsAndTellUser(
-		&model.PostList{
-			Order: postList.Order,
-			Posts: postListToDelete,
-		},
+	result := p.deletePosts(
+		postListToDelete,
 		options,
 	)
 
-	p.API.DeleteEphemeralPost(options.userID, beginningPost.Id)
-	p.sendEphemeralPost(options.userID, options.channelID, getResponseStringFromResults(result))
+	beginningPost.Message = getResponseStringFromResults(result)
+	p.API.UpdateEphemeralPost(options.userID, beginningPost)
 }

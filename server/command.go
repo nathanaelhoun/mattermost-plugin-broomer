@@ -83,6 +83,7 @@ func getHelp(conf *configuration) string {
 		"     * `--" + filterArgBefore + " [postID|postURL]` Delete posts before this one\n" +
 		"     * `--" + filterArgFrom + " [@username]` Delete posts posted by a specific user\n" +
 		// TODO : explains arguments furthers
+		// TODO : tell about dialogs UI
 		"\n" +
 		"### Global arguments :\n" +
 		" * `--" + argDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"

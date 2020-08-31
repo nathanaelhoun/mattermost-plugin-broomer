@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	routeDialogDeleteLast = "/dialog/deletion"
+	routeDialogDeleteLast    = "/dialog/delete-last"
+	routeDialogDeleteFilters = "/dialog/delete-filters"
 )
 
 // ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for the
@@ -15,7 +16,10 @@ const (
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case routeDialogDeleteLast:
-		p.dialogDeleteLast(w, r)
+		dialogDeleteLast(p, w, r)
+
+	case routeDialogDeleteFilters:
+		dialogDeleteWithFilters(p, w, r)
 
 	default:
 		http.NotFound(w, r)

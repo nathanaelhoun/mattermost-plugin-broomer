@@ -12,8 +12,8 @@ type delFilters struct {
 
 func (p *Plugin) executeCommandFilter(options *delOptions, filters *delFilters) (*model.CommandResponse, *model.AppError) {
 	conf := p.getConfiguration()
-	if conf.AskConfirm == AskConfirmNever ||
-		(conf.AskConfirm == AskConfirmOptional && options.optNoConfirmDialog) {
+	if conf.AskConfirm == askConfirmNever ||
+		(conf.AskConfirm == askConfirmOptional && options.optNoConfirmDialog) {
 		// Delete posts without confirmation dialog
 		p.deletePostWithFilters(options, filters)
 		return &model.CommandResponse{}, nil

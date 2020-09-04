@@ -7,17 +7,17 @@ import (
 )
 
 const (
-	// ASK_CONFIRM_ALWAYS   = "always" // deadcode
-	AskConfirmOptional = "optional"
-	AskConfirmNever    = "never"
+	// askConfirmAlways   = "always" // deadcode
+	askConfirmOptional = "optional"
+	askConfirmNever    = "never"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
 // configuration, as well as values computed from the configuration. Any public fields will be
 // deserialized from the Mattermost server configuration in OnConfigurationChange.
 type configuration struct {
-	RestrictToSysadmins bool
-	AskConfirm          string
+	RestrictToSysadmins bool   `json:"restrictToSysadmins"`
+	AskConfirm          string `json:"askConfirm"`
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if

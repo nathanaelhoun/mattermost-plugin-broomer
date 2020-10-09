@@ -13,30 +13,46 @@ func autocompletePostID(p *Plugin, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, _ := r.GetBody()
-	defer body.Close()
-	p.API.LogDebug("Received autocomplete request", "body", body)
-	// p.API.GetPost()
+	// query := r.URL.Query()
+	// fullUserInput := query.Get("user_input")
+	// p.API.LogDebug("Received autocomplete request", "userInput", fullUserInput)
+	// split := strings.Fields(fullUserInput)
+	// userInput := split[len(split)-1]
 
+	var out []model.AutocompleteListItem
+
+	out = append(out,
+		model.AutocompleteListItem{
+			HelpText: "Input the post ID",
+			Item:     "[postID|postURL]",
+		},
+	)
+
+	// TODO add autocomplete
 	// filter.AddNamedTextArgument(filterArgAfter, "Delete posts after this one", "[postID|postURL]", "", false)
 	// filter.AddNamedTextArgument(filterArgBefore, "Delete posts before this one", "[postID|postURL]", "", false)
 
-	out := []model.AutocompleteListItem{
-		{
-			HelpText: "Manually type the project's VCS repository name",
-			Item:     "[repository]",
-		},
-	}
-	// if len(projects) == 0 {
-	// 	p.respondJSON(w, out)
-	// 	return
+	// postID, err := transformToPostID(p, userInput, query.Get("channel_id"))
+	// if err != nil {
+	// 	out = append(out,
+	// 		model.AutocompleteListItem{
+	// 			HelpText: err.Error(),
+	// 			Item:     "Error",
+	// 		},
+	// 	)
+	// } else {
+	// 	post, appErr := p.API.GetPost(postID)
+	// 	if appErr != nil {
+	// 		p.API.LogError("Unable to get post", "postID", postID)
+	// 	} else {
+	// 		poster, _ := p.API.GetUser(post.UserId)
+
+	// 		out = append(out, model.AutocompleteListItem{
+	// 			HelpText: fmt.Sprintf("Posted by @%s: \"%s\"", poster.Username, post.Message),
+	// 			Item:     post.Id,
+	// 		})
+	// 	}
 	// }
 
-	// for _, project := range projects {
-	// 	out = append(out, model.AutocompleteListItem{
-	// 		HelpText: project.VCSURL,
-	// 		Item:     project.Reponame,
-	// 	})
-	// }
 	p.respondJSON(w, out)
 }

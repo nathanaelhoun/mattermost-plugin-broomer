@@ -19,7 +19,6 @@ const (
 // ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for the
 // /plugins/{id} path will be routed to the plugin.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	// TODO use mux.Router
 	switch r.URL.Path {
 	case routeDialogDeleteLast:
 		dialogDeleteLast(p, w, r)
@@ -28,6 +27,10 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		dialogDeleteWithFilters(p, w, r)
 
 	case routeAutocompletePostID:
+		if r.Method != http.MethodGet {
+			p.respondAndLogErr(w, http.StatusMethodNotAllowed, errors.New("method"+r.Method+"is not allowed, must be GET"))
+			return
+		}
 		autocompletePostID(p, w, r)
 
 	default:
@@ -35,11 +38,13 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
+// respondAndLogErr log the error in the server and send a response code to the request
 func (p *Plugin) respondAndLogErr(w http.ResponseWriter, code int, err error) {
 	http.Error(w, err.Error(), code)
 	p.API.LogError(err.Error())
 }
 
+// respondJSON turn the object into a JSON response and send it
 func (p *Plugin) respondJSON(w http.ResponseWriter, obj interface{}) {
 	data, err := json.Marshal(obj)
 	if err != nil {
@@ -57,12 +62,9 @@ func (p *Plugin) respondJSON(w http.ResponseWriter, obj interface{}) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// autocompletePostID is a "fake" dynamic list that show the post is the postID given by the user
+// is correct.
 func autocompletePostID(p *Plugin, w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		p.respondAndLogErr(w, http.StatusMethodNotAllowed, errors.New("method"+r.Method+"is not allowed, must be GET"))
-		return
-	}
-
 	// query := r.URL.Query()
 	// fullUserInput := query.Get("user_input")
 	// p.API.LogDebug("Received autocomplete request", "userInput", fullUserInput)
@@ -107,6 +109,7 @@ func autocompletePostID(p *Plugin, w http.ResponseWriter, r *http.Request) {
 	p.respondJSON(w, out)
 }
 
+// dialogDeleteLast handles the relevant interactive dialog
 func dialogDeleteLast(p *Plugin, w http.ResponseWriter, r *http.Request) {
 	request := model.SubmitDialogRequestFromJson(r.Body)
 	if request == nil {
@@ -122,7 +125,7 @@ func dialogDeleteLast(p *Plugin, w http.ResponseWriter, r *http.Request) {
 
 	numPostToDelete, err := strconv.Atoi(request.State)
 	if err != nil {
-		p.API.LogError("Failed to convert string to int. Bad request", "err", err.Error())
+		p.API.LogError("Failed to convert string to int. Bad request", "err", err.Error(), "request", request)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -138,6 +141,7 @@ func dialogDeleteLast(p *Plugin, w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// dialogDeleteWithFilters handles the relevant interactive dialog
 func dialogDeleteWithFilters(p *Plugin, w http.ResponseWriter, r *http.Request) {
 	// TODO
 	// request := model.SubmitDialogRequestFromJson(r.Body)

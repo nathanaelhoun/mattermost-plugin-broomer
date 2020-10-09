@@ -14,17 +14,6 @@ const (
 	commandHint     = "[subcommand]"
 	commandHelpText = "Clean the channel by removing posts. Available commands: " + lastTrigger + ", " + filterTrigger + ", " + helpTrigger
 
-	lastTrigger  = "last"
-	lastHint     = "[number-of-posts]"
-	lastHelpText = "Delete the last [number-of-posts] posts of the channel"
-
-	filterTrigger   = "filter"
-	filterHint      = "[--from|--after|--before]"
-	filterHelpText  = "To Be Done : Clean this channel with filters"
-	filterArgAfter  = "after"
-	filterArgBefore = "before"
-	filterArgFrom   = "from"
-
 	helpTrigger  = "help"
 	helpHint     = ""
 	helpHelpText = "Learn how to broom"
@@ -35,17 +24,11 @@ const (
 	argNoConfirm        = "confirm"
 )
 
-// This type define an error made by the user (incorrect argument, etc).
-// It should not be logged by the server but sent back to the user
+// userError is an error that must be shown to the user, but that is not relevant to be logged by the server
 type userError error
 
-func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, disableConfirmDialog bool) {
-	cmd.AddNamedTextArgument(argDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
-	if disableConfirmDialog {
-		cmd.AddNamedTextArgument(argNoConfirm, "Do not show confirmation dialog", "true", "", false)
-	}
-}
-
+// getCommand return the slash command
+// The autocompleteData is generated according to the configuration
 func getCommand(conf *configuration) *model.Command {
 	cmdAutocompleteData := model.NewAutocompleteData(commandTrigger, commandHint, commandHelpText)
 	if conf.RestrictToSysadmins {
@@ -54,13 +37,13 @@ func getCommand(conf *configuration) *model.Command {
 
 	last := model.NewAutocompleteData(lastTrigger, lastHint, lastHelpText)
 	last.AddTextArgument(last.HelpText, lastHint, "[0-9]+")
-	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == askConfirmOptional)
+	addAllNamedTextArguments(last, conf.AskConfirm == askConfirmOptional)
 
 	filter := model.NewAutocompleteData(filterTrigger, filterHint, filterHelpText)
 	filter.AddNamedDynamicListArgument(filterArgAfter, "Delete posts after this one", routeAutocompletePostID, false)
 	filter.AddNamedDynamicListArgument(filterArgBefore, "Delete posts before this one", routeAutocompletePostID, false)
 	filter.AddNamedTextArgument(filterArgFrom, "Delete posts posted by a specific user", "[@username]", "@.+", false)
-	addAllNamedTextArgumentsToCmd(filter, conf.AskConfirm == askConfirmOptional)
+	addAllNamedTextArguments(filter, conf.AskConfirm == askConfirmOptional)
 
 	help := model.NewAutocompleteData(helpTrigger, helpHint, helpHelpText)
 
@@ -77,6 +60,17 @@ func getCommand(conf *configuration) *model.Command {
 	}
 }
 
+// addAllNamedTextArguments add all the flags that comes with all the commands
+func addAllNamedTextArguments(cmd *model.AutocompleteData, disableConfirmDialog bool) {
+	// TODO use boolean flag when then are available. See https://github.com/mattermost/mattermost-server/pull/14810
+	cmd.AddNamedTextArgument(argDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
+	if disableConfirmDialog {
+		cmd.AddNamedTextArgument(argNoConfirm, "Do not show confirmation dialog", "true", "", false)
+	}
+}
+
+// getHelp generate a string with an help message for the user
+// It uses the conf to know which flags to are enabled on the instance
 func getHelp(conf *configuration) string {
 	helpStr := "## Broomer Plugin\n" +
 		"Easily clean the current channel with this magic broom.\n" +
@@ -99,6 +93,7 @@ func getHelp(conf *configuration) string {
 	return helpStr
 }
 
+// ExecuteCommand is called when a slash command registered by the plugin is used
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	// Respond "no trigger found" if the user is not authorized
 	if p.getConfiguration().RestrictToSysadmins && !isSysadmin(p, args.UserId) {
@@ -106,7 +101,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	subcommand, options, filters, userErr := p.parseAndCheckCommandArgs(args)
-	p.API.LogDebug("Parsed command", "subcommand", subcommand, "options", options, "filters", filters)
+	p.API.LogDebug("Parsed command broom", "subcommand", subcommand, "options", options, "filters", filters)
 	if userErr != nil {
 		return p.respondEphemeralResponse(args, userErr.Error()), nil
 	}
@@ -125,7 +120,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 }
 
-// Return the subcommand, the options and the filter in the command, sanitized
+// parseAndCheckCommandArgs returns the subcommand, the options and the filter in the command, sanitized
 func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *delOptions, *delFilters, userError) {
 	subcommand := ""
 	options := &delOptions{
@@ -145,22 +140,17 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 	}
 
 	split := strings.Fields(args.Command)
+	if len(split) < 2 || split[1] == helpTrigger {
+		return helpTrigger, nil, nil, nil
+	}
+	subcommand = split[1]
 
-	for i := 1; i < len(split); i++ { // Initialize to 1 to skip '/commandTrigger'
-		if i == 1 {
-			subcommand = split[i]
-			if subcommand == helpTrigger {
-				return subcommand, nil, nil, nil
-			}
-
-			continue
-		}
-
+	for i := 2; i < len(split); i++ { // Initialize to 2 to skip '/broom subcommand'
+		// This is a namedTextArgument: process the argument and its value
 		if strings.HasPrefix(split[i], "--") {
-			// Process the argument and its value
 			argName := split[i][2:]
 
-			// If should have a value
+			// It should have a value
 			i++
 			if i >= len(split) {
 				return "", nil, nil, errors.Errorf(
@@ -172,7 +162,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 			}
 			argValue := split[i]
 
-			// TODO : improve parser with multiple users name after --from (and document it)
+			// TODO: improve parser with multiple users name after --from (and document it)
 			argValueString, argValueBool, userErr := processNamedArgValue(p, argName, argValue, options, filters)
 			if userErr != nil {
 				return subcommand, nil, nil, userErr
@@ -195,7 +185,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 			continue // i has been incremented already to skip the value of the named argument
 		}
 
-		// Number to delete
+		// The number of post to delete has already been defined: this argument shouldn't be here
 		if options.numPost != 0 {
 			return "", nil, nil, errors.Errorf("Invalid argument `%s`", split[i])
 		}
@@ -239,7 +229,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 
 		if lastPost.CreateAt < firstPost.CreateAt {
 			return subcommand, nil, nil, errors.Errorf(
-				"Post %s is older post %s so there is no before the first and after the last",
+				"Post %s is older post %s so there is no post that are before the first and after the last",
 				firstPost.Id,
 				lastPost.Id,
 			)
@@ -275,26 +265,14 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 }
 
 // Process a named arg defined for this command and check its value
-func processNamedArgValue(
-	p *Plugin,
-	argName string,
-	argValue string,
-	existingOptions *delOptions,
-	existingFilters *delFilters,
-) (*string, *bool, userError) {
+func processNamedArgValue(p *Plugin, argName string, argValue string, existingOptions *delOptions, existingFilters *delFilters) (*string, *bool, userError) {
 	switch argName {
 	// --------------------------------------------
+	case argNoConfirm:
+		fallthrough
 	case argDeletePinnedPost:
 		if argValue == "true" || argValue == "false" {
-			value := argValue == "true"
-			return nil, &value, nil
-		}
-		return nil, nil, errors.Errorf("Invalid value for `--%s`, `%s` should be `true` or `false`", argName, argValue)
-
-	// --------------------------------------------
-	case argNoConfirm:
-		if argValue == "true" || argValue == "false" {
-			value := argValue == "true"
+			value := (argValue == "true")
 			return nil, &value, nil
 		}
 		return nil, nil, errors.Errorf("Invalid value for `--%s`, `%s` should be `true` or `false`", argName, argValue)
@@ -343,13 +321,14 @@ func processNamedArgValue(
 		// TODO check is the user is in the channel
 
 		return &user.Id, nil, nil
-	}
 
 	// --------------------------------------------
-	return nil, nil, errors.Errorf(
-		"Unknown argument `--%s`. Type `/%s %s` to learn how to broom",
-		argName,
-		commandTrigger,
-		helpTrigger,
-	)
+	default:
+		return nil, nil, errors.Errorf(
+			"Unknown argument `--%s`. Type `/%s %s` to learn how to broom",
+			argName,
+			commandTrigger,
+			helpTrigger,
+		)
+	}
 }

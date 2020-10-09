@@ -4,6 +4,15 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const (
+	filterTrigger   = "filter"
+	filterHint      = "[--from|--after|--before]"
+	filterHelpText  = "To Be Done : Clean this channel with filters"
+	filterArgAfter  = "after"
+	filterArgBefore = "before"
+	filterArgFrom   = "from"
+)
+
 type delFilters struct {
 	afterThisPostID  string
 	beforeThisPostID string
@@ -107,11 +116,11 @@ func (p *Plugin) deletePostWithFilters(options *delOptions, filters *delFilters)
 		}
 	}
 
-	result := p.deletePosts(
+	result := p.batchDeletePosts(
 		postListToDelete,
 		options,
 	)
 
-	beginningPost.Message = getResponseStringFromResults(result)
+	beginningPost.Message = result.String()
 	p.API.UpdateEphemeralPost(options.userID, beginningPost)
 }

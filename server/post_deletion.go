@@ -6,8 +6,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// model.PostList.Posts contains the searched posts AND all the posts of all the linked threads
-// This method filters out the unwanted posts and return the postList with the relevant posts
+// getRelevantPostList filters out the unwanted posts and return the postList with the relevant posts
+// because model.PostList.Posts contains the searched posts AND all the posts of all the linked threads
 func getRelevantPostList(postList *model.PostList) *model.PostList {
 	relevantPosts := make(map[string]*model.Post, len(postList.Order))
 
@@ -19,6 +19,7 @@ func getRelevantPostList(postList *model.PostList) *model.PostList {
 	return postList
 }
 
+// delOptions contains the information used for deletion of posts
 type delOptions struct {
 	userID                string
 	triggerID             string
@@ -29,6 +30,7 @@ type delOptions struct {
 	permDeleteOthersPosts bool
 }
 
+// delResults contains statistics about the deleted (or not) posts
 type delResults struct {
 	numPostsDeleted    int
 	technicalErrors    int
@@ -36,17 +38,18 @@ type delResults struct {
 	pinnedPostErrors   int
 }
 
-// Assuming the user has the rights to delete the posts
+// batchDeletePosts delete all the posts in postList that matches the criteria of options
+// This assumes the user has the rights to delete posts
 // ! This check has to be made before!
-func (p *Plugin) deletePosts(postList *model.PostList, options *delOptions) *delResults {
-	p.API.LogDebug("Deleting these posts", "postIds", postList.Order)
+func (p *Plugin) batchDeletePosts(postList *model.PostList, options *delOptions) *delResults {
+	p.API.LogInfo("Batch deleting these posts", "postIds", postList.Order)
 	result := new(delResults)
 
 	for _, postID := range postList.Order {
 		post, ok := postList.Posts[postID]
 		if !ok {
 			result.technicalErrors++
-			p.API.LogError("This postID doesn't match any stored post. This shouldn't happen.", "postID", postID)
+			p.API.LogError("This postID doesn't match any stored post. This shouldn't happen.", "postID", postID, "storedPost", postList.Posts)
 			continue
 		}
 
@@ -61,7 +64,8 @@ func (p *Plugin) deletePosts(postList *model.PostList, options *delOptions) *del
 		}
 
 		if post.RootId != "" {
-			// The post is in a thread: skip it if the root will be also deleted
+			// The post is in a thread: skip it if the root will be also deleted,
+			// because deleting a root post automatically delete the whole thread
 			if _, ok := postList.Posts[post.RootId]; ok {
 				result.numPostsDeleted++
 				continue
@@ -70,14 +74,7 @@ func (p *Plugin) deletePosts(postList *model.PostList, options *delOptions) *del
 
 		if appErr := p.API.DeletePost(post.Id); appErr != nil {
 			result.technicalErrors++
-			p.API.LogError(
-				"Unable to delete post",
-				"PostID", post.Id,
-				"err", appErr.Error(),
-				"ErrorId", appErr.Id,
-				"RequestId", appErr.RequestId,
-				"DetailedError", appErr.DetailedError,
-			)
+			p.API.LogError("Unable to delete post", "PostID", post.Id, "appErr", appErr.ToJson())
 			continue
 		}
 
@@ -87,48 +84,49 @@ func (p *Plugin) deletePosts(postList *model.PostList, options *delOptions) *del
 	return result
 }
 
-func getResponseStringFromResults(result *delResults) string {
-	strResponse := ""
+// String turns the delResults into a formatted string
+func (delR *delResults) String() string {
+	str := ""
 
-	if result.technicalErrors > 0 {
-		strResponse += fmt.Sprintf(
+	if delR.technicalErrors > 0 {
+		str += fmt.Sprintf(
 			"Because of a technical error, %d post%s could not be deleted\n",
-			result.technicalErrors,
-			getPluralChar(result.technicalErrors),
+			delR.technicalErrors,
+			getPluralChar(delR.technicalErrors),
 		)
 	}
 
-	if result.pinnedPostErrors > 0 {
-		strResponse += fmt.Sprintf(
+	if delR.pinnedPostErrors > 0 {
+		str += fmt.Sprintf(
 			"%d post%s not deleted because pinned to channel\n",
-			result.pinnedPostErrors,
-			getPluralChar(result.pinnedPostErrors),
+			delR.pinnedPostErrors,
+			getPluralChar(delR.pinnedPostErrors),
 		)
 	}
 
-	if result.notPermittedErrors > 0 {
-		if result.numPostsDeleted == 0 {
-			strResponse += "Sorry, you are only allowed to delete your own posts\n"
+	if delR.notPermittedErrors > 0 {
+		if delR.numPostsDeleted == 0 {
+			str += "Sorry, you are only allowed to delete your own posts\n"
 		} else {
-			strResponse += fmt.Sprintf(
+			str += fmt.Sprintf(
 				"%d post%s not deleted because you are not allowed to do so\n",
-				result.notPermittedErrors,
-				getPluralChar(result.notPermittedErrors),
+				delR.notPermittedErrors,
+				getPluralChar(delR.notPermittedErrors),
 			)
 		}
 	}
 
-	if result.numPostsDeleted > 0 {
-		strResponse += fmt.Sprintf(
+	if delR.numPostsDeleted > 0 {
+		str += fmt.Sprintf(
 			"Successfully deleted %d post%s",
-			result.numPostsDeleted,
-			getPluralChar(result.numPostsDeleted),
+			delR.numPostsDeleted,
+			getPluralChar(delR.numPostsDeleted),
 		)
 	}
 
-	if strResponse == "" {
-		strResponse = "No post matches your filters: this channel looks clean!"
+	if str == "" {
+		str = "No post matches your filters: this channel looks clean!"
 	}
 
-	return strResponse
+	return str
 }

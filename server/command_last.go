@@ -7,6 +7,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const (
+	lastTrigger  = "last"
+	lastHint     = "[number-of-posts]"
+	lastHelpText = "Delete the last [number-of-posts] posts of the channel"
+)
+
 func (p *Plugin) executeCommandLast(options *delOptions) (*model.CommandResponse, *model.AppError) {
 	conf := p.getConfiguration()
 	if conf.AskConfirm == askConfirmNever ||
@@ -82,11 +88,11 @@ func (p *Plugin) deleteLastPostsInChannel(options *delOptions) {
 
 	postListToDelete := getRelevantPostList(postList)
 
-	result := p.deletePosts(
+	result := p.batchDeletePosts(
 		postListToDelete,
 		options,
 	)
 
-	beginningPost.Message = getResponseStringFromResults(result)
+	beginningPost.Message = result.String()
 	p.API.UpdateEphemeralPost(options.userID, beginningPost)
 }

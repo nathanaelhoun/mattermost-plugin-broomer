@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
 )
 
 // Check if the user has sysadmins rights
@@ -54,4 +55,27 @@ func (p *Plugin) sendEphemeralPost(userID string, channelID string, message stri
 func (p *Plugin) respondEphemeralResponse(args *model.CommandArgs, message string) *model.CommandResponse {
 	_ = p.sendEphemeralPost(args.UserId, args.ChannelId, message)
 	return &model.CommandResponse{}
+}
+
+// Check that a postID in form of the direct ID or a link to the post is correct
+// If so, returns the postID
+// If incorrect, returns "" and an error
+func transformToPostID(p *Plugin, postIDToParse string, channelID string) (string, error) {
+	if strings.HasPrefix(postIDToParse, "http") {
+		// TODO: This is a link: transform it in a postID
+		return "", errors.Errorf("Sorry, links are not supported for the moment. Please use the postID")
+	}
+
+	post, appErr := p.API.GetPost(postIDToParse)
+	if appErr != nil {
+		// TODO change message if internal error or user unknown
+		p.API.LogError("Unable to get post", "appError :", appErr.ToJson())
+		return "", errors.Errorf("unknown post `%s`", postIDToParse)
+	}
+
+	if post.ChannelId != channelID {
+		return "", errors.Errorf("post `%s` is not in this channel", postIDToParse)
+	}
+
+	return post.Id, nil
 }

@@ -53,8 +53,8 @@ func getCommand(conf *configuration) *model.Command {
 	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == askConfirmOptional)
 
 	filter := model.NewAutocompleteData(filterTrigger, filterHint, filterHelpText)
-	filter.AddNamedTextArgument(filterArgAfter, "Delete posts after this one", "[postID|postURL]", "", false)
-	filter.AddNamedTextArgument(filterArgBefore, "Delete posts before this one", "[postID|postURL]", "", false)
+	filter.AddNamedDynamicListArgument(filterArgAfter, "Delete posts after this one", routeAutocompletePostID, false)
+	filter.AddNamedDynamicListArgument(filterArgBefore, "Delete posts before this one", routeAutocompletePostID, false)
 	filter.AddNamedTextArgument(filterArgFrom, "Delete posts posted by a specific user", "[@username]", "@.+", false)
 	addAllNamedTextArgumentsToCmd(filter, conf.AskConfirm == askConfirmOptional)
 

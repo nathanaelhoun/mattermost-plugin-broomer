@@ -9,6 +9,7 @@ import (
 const (
 	routeDialogDeleteLast    = "/dialog/delete-last"
 	routeDialogDeleteFilters = "/dialog/delete-filters"
+	routeAutocompletePostID  = "/autocomplete/postid"
 )
 
 // ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for the
@@ -21,6 +22,9 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 	case routeDialogDeleteFilters:
 		dialogDeleteWithFilters(p, w, r)
+
+	case routeAutocompletePostID:
+		autocompletePostID(p, w, r)
 
 	default:
 		http.NotFound(w, r)

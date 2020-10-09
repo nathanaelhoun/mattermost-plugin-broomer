@@ -14,6 +14,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 	options := &delOptions{
 		channelID:             args.ChannelId,
 		userID:                args.UserId,
+		triggerID:             args.TriggerId,
 		numPost:               0,
 		permDeleteOthersPosts: canDeleteOthersPosts(p, args.UserId, args.ChannelId),
 		optDeletePinnedPosts:  false,

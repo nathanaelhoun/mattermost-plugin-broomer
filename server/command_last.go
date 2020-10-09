@@ -28,7 +28,7 @@ func (p *Plugin) sendDialogDeleteLast(options *delOptions) {
 	}
 
 	dialog := &model.OpenDialogRequest{
-		TriggerId: options.userID,
+		TriggerId: options.triggerID,
 		URL:       fmt.Sprintf("%s/plugins/%s%s", siteURL, manifest.Id, routeDialogDeleteLast),
 		Dialog: model.Dialog{
 			CallbackId: "confirmPostDeletion",

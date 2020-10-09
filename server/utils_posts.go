@@ -21,6 +21,7 @@ func getRelevantPostList(postList *model.PostList) *model.PostList {
 
 type delOptions struct {
 	userID                string
+	triggerID             string
 	channelID             string
 	numPost               int
 	optDeletePinnedPosts  bool

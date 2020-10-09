@@ -14,6 +14,7 @@ const (
 // ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for the
 // /plugins/{id} path will be routed to the plugin.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	// TODO use mux.Router
 	switch r.URL.Path {
 	case routeDialogDeleteLast:
 		dialogDeleteLast(p, w, r)

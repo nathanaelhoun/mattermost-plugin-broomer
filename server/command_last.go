@@ -13,6 +13,14 @@ const (
 	lastHelpText = "Delete the last [number-of-posts] posts of the channel"
 )
 
+func getLastAutocompleteData(conf *configuration) *model.AutocompleteData {
+	last := model.NewAutocompleteData(lastTrigger, lastHint, lastHelpText)
+	last.AddTextArgument(last.HelpText, lastHint, "[0-9]+")
+	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == askConfirmOptional)
+
+	return last
+}
+
 func (p *Plugin) executeCommandLast(options *deletionOptions) (*model.CommandResponse, *model.AppError) {
 	conf := p.getConfiguration()
 
@@ -81,6 +89,6 @@ func (p *Plugin) deleteLastPostsInChannel(options *deletionOptions) {
 	postListToDelete := getRelevantPostList(postList)
 	result := p.deletePosts(postListToDelete, options)
 
-	p.API.DeleteEphemeralPost(options.userID, beginningPost.Id)
-	p.sendEphemeralPost(options.userID, options.channelID, result.String())
+	beginningPost.Message = result.String()
+	p.API.UpdateEphemeralPost(options.userID, beginningPost)
 }

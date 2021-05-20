@@ -79,7 +79,7 @@ func (p *Plugin) OnConfigurationChange() error {
 
 	p.setConfiguration(configuration)
 
-	if err := p.API.RegisterCommand(getCommand(configuration)); err != nil {
+	if err := p.API.RegisterCommand(p.getCommand()); err != nil {
 		return errors.Wrap(err, "failed to register new command")
 	}
 

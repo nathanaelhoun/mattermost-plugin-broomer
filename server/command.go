@@ -1,6 +1,11 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
@@ -14,7 +19,7 @@ const (
 	argNoConfirm        = "confirm"
 )
 
-func getCommand(conf *configuration) *model.Command {
+func (p *Plugin) getCommand() *model.Command {
 	const (
 		command         = "broom"
 		commandHint     = "[subcommand]"
@@ -22,26 +27,37 @@ func getCommand(conf *configuration) *model.Command {
 	)
 
 	cmdAutocompleteData := model.NewAutocompleteData(command, commandHint, commandHelpText)
-	if conf.RestrictToSysadmins {
+	if p.getConfiguration().RestrictToSysadmins {
 		cmdAutocompleteData.RoleID = "system_admin"
 	}
 
-	last := model.NewAutocompleteData(lastTrigger, lastHint, lastHelpText)
-	last.AddTextArgument(last.HelpText, lastHint, "[0-9]+")
-	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == askConfirmOptional)
-
-	help := model.NewAutocompleteData(helpTrigger, "", "Learn how to broom")
-
-	cmdAutocompleteData.AddCommand(last)
-	cmdAutocompleteData.AddCommand(help)
+	cmdAutocompleteData.AddCommand(getLastAutocompleteData(p.getConfiguration()))
+	cmdAutocompleteData.AddCommand(model.NewAutocompleteData(helpTrigger, "", "Learn how to broom"))
 
 	return &model.Command{
-		Trigger:          command,
-		AutoComplete:     true,
-		AutoCompleteDesc: commandHelpText,
-		AutoCompleteHint: commandHint,
-		AutocompleteData: cmdAutocompleteData,
+		Trigger:              command,
+		AutoComplete:         true,
+		AutoCompleteDesc:     commandHelpText,
+		AutoCompleteHint:     commandHint,
+		AutocompleteData:     cmdAutocompleteData,
+		AutocompleteIconData: getAutocompleteIconData(p),
 	}
+}
+
+func getAutocompleteIconData(p *Plugin) string {
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		p.API.LogError("Couldn't get bundle path", "error", err)
+		return ""
+	}
+
+	icon, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "broom.svg"))
+	if err != nil {
+		p.API.LogError("Failed to open icon", "error", err)
+		return ""
+	}
+
+	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon))
 }
 
 func getHelp(conf *configuration) string {

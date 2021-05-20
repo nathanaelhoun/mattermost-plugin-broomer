@@ -8,12 +8,12 @@ Clean your channels with `/broom`!
 
 ## Features
 
-`/broom [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
+`/broom last [number-of-post]` Delete the last `[number-of-post]` posts in the current channel
 
 ### Available options :
 
--   `--delete-pinned-posts` Also delete pinned post (disabled by default)
--   `--confirm` Do not show confirmation dialog (can also be turned off for the whole server)
+-   `--delete-pinned-posts true` Also delete pinned post (disabled by default)
+-   `--confirm true` Skip confirmation dialog (can also be turned off for the whole server)
 
 ## Installation
 

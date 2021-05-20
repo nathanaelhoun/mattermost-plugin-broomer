@@ -139,7 +139,7 @@ func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, skipConfirmation
 			HelpText: "Delete pinned posts",
 		}, {
 			Item:     "false",
-			HelpText: "Do not delete pinned posts (default behaviour)",
+			HelpText: "Do not delete pinned posts (default behavior)",
 		},
 	})
 
@@ -153,6 +153,5 @@ func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, skipConfirmation
 				HelpText: "Do not skip confirmation dialog",
 			},
 		})
-
 	}
 }

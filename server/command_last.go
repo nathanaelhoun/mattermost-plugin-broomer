@@ -23,18 +23,13 @@ func getLastAutocompleteData(conf *configuration) *model.AutocompleteData {
 	return last
 }
 
-func (p *Plugin) executeCommandLast(options *deletionOptions) (*model.CommandResponse, *model.AppError) {
-	conf := p.getConfiguration()
-
-	if conf.AskConfirm == askConfirmNever ||
-		(conf.AskConfirm == askConfirmOptional && options.optNoConfirmDialog) {
-		// Delete posts without confirmation dialog
+func (p *Plugin) executeLast(options *deletionOptions) (*model.CommandResponse, *model.AppError) {
+	if p.shouldConfirmDeletion(options.optNoConfirmDialog) {
+		p.sendDialogDeleteLast(options)
+	} else {
 		p.deleteLastPostsInChannel(options)
-		return &model.CommandResponse{}, nil
 	}
 
-	// Send a confirmation dialog
-	p.sendDialogDeleteLast(options)
 	return &model.CommandResponse{}, nil
 }
 

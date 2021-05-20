@@ -40,11 +40,11 @@ func (p *Plugin) getCommand() *model.Command {
 		AutoCompleteDesc:     commandHelpText,
 		AutoCompleteHint:     commandHint,
 		AutocompleteData:     cmdAutocompleteData,
-		AutocompleteIconData: getAutocompleteIconData(p),
+		AutocompleteIconData: p.getAutocompleteIconData(),
 	}
 }
 
-func getAutocompleteIconData(p *Plugin) string {
+func (p *Plugin) getAutocompleteIconData() string {
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
 		p.API.LogError("Couldn't get bundle path", "error", err)
@@ -58,6 +58,28 @@ func getAutocompleteIconData(p *Plugin) string {
 	}
 
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon))
+}
+
+func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	// Respond "no trigger found" if the user is not authorized
+	if p.getConfiguration().RestrictToSysadmins && !isSysadmin(p, args.UserId) {
+		return nil, nil
+	}
+
+	subcommand, options, userErr := p.parseAndCheckCommandArgs(args)
+	if userErr != nil {
+		return p.respondEphemeralResponse(args, userErr.Error()), nil
+	}
+
+	switch subcommand {
+	case lastTrigger:
+		return p.executeLast(options)
+
+	case helpTrigger:
+		fallthrough
+	default:
+		return p.respondEphemeralResponse(args, getHelp(p.getConfiguration())), nil
+	}
 }
 
 func getHelp(conf *configuration) string {
@@ -75,26 +97,4 @@ func getHelp(conf *configuration) string {
 	}
 
 	return helpStr
-}
-
-func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	// Respond "no trigger found" if the user is not authorized
-	if p.getConfiguration().RestrictToSysadmins && !isSysadmin(p, args.UserId) {
-		return nil, nil
-	}
-
-	subcommand, options, userErr := p.parseAndCheckCommandArgs(args)
-	if userErr != nil {
-		return p.respondEphemeralResponse(args, userErr.Error()), nil
-	}
-
-	switch subcommand {
-	case lastTrigger:
-		return p.executeCommandLast(options)
-
-	case helpTrigger:
-		fallthrough
-	default:
-		return p.respondEphemeralResponse(args, getHelp(p.getConfiguration())), nil
-	}
 }

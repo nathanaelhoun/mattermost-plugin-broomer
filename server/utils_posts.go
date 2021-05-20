@@ -29,14 +29,14 @@ type deletePostResult struct {
 func (result *deletePostResult) String() (strResponse string) {
 	if result.technicalErrors > 0 {
 		strResponse += fmt.Sprintf(
-			"Because of a technical error, %d post%s could not be deleted\n",
+			"Because of a technical error, %d post%s could not be deleted.\n",
 			result.technicalErrors, getPluralChar(result.technicalErrors),
 		)
 	}
 
 	if result.pinnedPostErrors > 0 {
 		strResponse += fmt.Sprintf(
-			"%d post%s not deleted because pinned to channel\n",
+			"%d post%s not deleted because they are pinned to the channel.\n",
 			result.pinnedPostErrors, getPluralChar(result.pinnedPostErrors),
 		)
 	}
@@ -46,7 +46,7 @@ func (result *deletePostResult) String() (strResponse string) {
 			strResponse += "Sorry, you are only allowed to delete your own posts\n"
 		} else {
 			strResponse += fmt.Sprintf(
-				"%d post%s not deleted because you are not allowed to do so\n",
+				"%d post%s not deleted because you are not allowed to do so.\n",
 				result.notPermittedErrors, getPluralChar(result.notPermittedErrors),
 			)
 		}
@@ -54,12 +54,12 @@ func (result *deletePostResult) String() (strResponse string) {
 
 	if result.numPostsDeleted > 0 {
 		strResponse += fmt.Sprintf(
-			"Successfully deleted %d post%s",
+			"Successfully deleted %d post%s.",
 			result.numPostsDeleted, getPluralChar(result.numPostsDeleted))
 	}
 
 	if strResponse == "" {
-		strResponse = "There are no posts in this channel"
+		strResponse = "There are no posts in this channel."
 	}
 
 	return strResponse
@@ -73,12 +73,7 @@ func (p *Plugin) deletePosts(postList *model.PostList, options *deletionOptions)
 	result := new(deletePostResult)
 
 	for _, postID := range postList.Order {
-		post, ok := postList.Posts[postID]
-		if !ok {
-			result.technicalErrors++
-			p.API.LogError("This postID doesn't match any stored post. This shouldn't happen.", "postID", postID)
-			continue
-		}
+		post := postList.Posts[postID]
 
 		if !options.permDeleteOthersPosts && post.UserId != options.userID {
 			result.notPermittedErrors++
@@ -95,16 +90,20 @@ func (p *Plugin) deletePosts(postList *model.PostList, options *deletionOptions)
 			// because deleting a root post automatically delete the whole thread
 			if _, ok := postList.Posts[post.RootId]; ok {
 				result.numPostsDeleted++
-				continue
+				continue // process next post
 			}
 		}
 
 		if appErr := p.API.DeletePost(post.Id); appErr != nil {
 			result.technicalErrors++
 			p.API.LogError("Unable to delete post", "PostID", post.Id, "appErr", appErr)
-			continue
+			continue // process next post
 		}
 
+		// FIXME Count is not accurate if we delete posts having children, but if we do not delete the children before
+		// for example when using filters.
+		// We can't use post.ReplyCount as a reference because it's not populated when using
+		// the API
 		result.numPostsDeleted++
 	}
 

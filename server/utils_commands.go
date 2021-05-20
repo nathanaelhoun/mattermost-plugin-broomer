@@ -12,6 +12,7 @@ import (
 // It should not be logged by the server, but sent back to the user
 type userError error
 
+// deletionOptions contains the options for the command
 type deletionOptions struct {
 	channelID             string
 	userID                string
@@ -22,7 +23,7 @@ type deletionOptions struct {
 	permDeleteOthersPosts bool
 }
 
-// Return the subcommand, the options in the command sanitized, and a userError if applicable
+// Returns the subcommand, the sanitized options, and a userError if applicable
 func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *deletionOptions, userError) {
 	subcommand := ""
 	options := &deletionOptions{
@@ -55,9 +56,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 			i++
 			if i >= len(split) {
 				return "", nil, errors.Errorf(
-					"Argument `--%s` should have a value. Type `/broom %s` to learn how to broom",
-					argName, helpTrigger,
-				)
+					"Argument `--%s` should have a value. Type `/broom %s` to learn how to broom", argName, helpTrigger)
 			}
 			argValue := split[i]
 
@@ -92,7 +91,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 
 		currentChannel, appErr := p.API.GetChannel(args.ChannelId)
 		if appErr != nil {
-			p.API.LogError("Unable to get channel statistics", "Error:", appErr)
+			p.API.LogError("Unable to get channel statistics", "appErr", appErr)
 			return subcommand, nil, errors.Errorf("Error when deleting posts")
 		}
 
@@ -108,7 +107,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 	return subcommand, options, nil
 }
 
-// Process a named arg defined for this command and check its value
+// Processes a named arg defined for this command and check its value
 func processNamedArgValue(p *Plugin, argName string, argValue string, existingOptions *deletionOptions) (*string, *bool, userError) {
 	switch argName {
 	// --------------------------------------------
@@ -132,10 +131,28 @@ func processNamedArgValue(p *Plugin, argName string, argValue string, existingOp
 	return nil, nil, errors.Errorf("Unknown argument `--%s`. Type `/broom %s` to learn how to broom", argName, helpTrigger)
 }
 
-// addAllNamedTextArgumentsToCmd add the common named arguments autocompletion to the given command
-func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, isDisableConfirmDialogAutocompleteEnabled bool) {
-	cmd.AddNamedTextArgument(argDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
-	if isDisableConfirmDialogAutocompleteEnabled {
-		cmd.AddNamedTextArgument(argNoConfirm, "Do not show confirmation dialog", "true", "", false)
+// addAllNamedTextArgumentsToCmd adds the common named arguments autocompletion to the given command
+func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, skipConfirmationDialogEnabled bool) {
+	cmd.AddNamedStaticListArgument(argDeletePinnedPost, "Also delete pinned posts (disabled by default)", false, []model.AutocompleteListItem{
+		{
+			Item:     "true",
+			HelpText: "Delete pinned posts",
+		}, {
+			Item:     "false",
+			HelpText: "Do not delete pinned posts (default behaviour)",
+		},
+	})
+
+	if skipConfirmationDialogEnabled {
+		cmd.AddNamedStaticListArgument(argNoConfirm, "Do not show confirmation dialog", false, []model.AutocompleteListItem{
+			{
+				Item:     "true",
+				HelpText: "Skip confirmation dialog",
+			}, {
+				Item:     "false",
+				HelpText: "Do not skip confirmation dialog",
+			},
+		})
+
 	}
 }

@@ -6,17 +6,7 @@ import (
 )
 
 const (
-	commandTrigger  = "broom"
-	commandHint     = "[subcommand]"
-	commandHelpText = "Clean the channel by removing posts. Available commands: " + lastTrigger + ", " + helpTrigger
-
-	lastTrigger  = "last"
-	lastHint     = "[number-of-posts]"
-	lastHelpText = "Delete the last [number-of-posts] posts of the channel"
-
-	helpTrigger  = "help"
-	helpHint     = ""
-	helpHelpText = "Learn how to broom"
+	helpTrigger = "help"
 
 	messageBeginning = "Beginning housecleaning, please wait..."
 
@@ -25,7 +15,13 @@ const (
 )
 
 func getCommand(conf *configuration) *model.Command {
-	cmdAutocompleteData := model.NewAutocompleteData(commandTrigger, commandHint, commandHelpText)
+	const (
+		command         = "broom"
+		commandHint     = "[subcommand]"
+		commandHelpText = "Clean the channel by removing posts. Available commands: " + lastTrigger + ", " + helpTrigger
+	)
+
+	cmdAutocompleteData := model.NewAutocompleteData(command, commandHint, commandHelpText)
 	if conf.RestrictToSysadmins {
 		cmdAutocompleteData.RoleID = "system_admin"
 	}
@@ -34,13 +30,13 @@ func getCommand(conf *configuration) *model.Command {
 	last.AddTextArgument(last.HelpText, lastHint, "[0-9]+")
 	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == askConfirmOptional)
 
-	help := model.NewAutocompleteData(helpTrigger, helpHint, helpHelpText)
+	help := model.NewAutocompleteData(helpTrigger, "", "Learn how to broom")
 
 	cmdAutocompleteData.AddCommand(last)
 	cmdAutocompleteData.AddCommand(help)
 
 	return &model.Command{
-		Trigger:          commandTrigger,
+		Trigger:          command,
 		AutoComplete:     true,
 		AutoCompleteDesc: commandHelpText,
 		AutoCompleteHint: commandHint,
@@ -52,7 +48,7 @@ func getHelp(conf *configuration) string {
 	helpStr := "## Broomer Plugin\n" +
 		"Easily clean the current channel with this magic broom.\n" +
 		"\n" +
-		" * `/" + commandTrigger + " " + lastTrigger + " " + lastHint + "` " + lastHelpText + "\n" +
+		" * `/broom " + lastTrigger + " " + lastHint + "` " + lastHelpText + "\n" +
 
 		"\n" +
 		"### Global arguments :\n" +

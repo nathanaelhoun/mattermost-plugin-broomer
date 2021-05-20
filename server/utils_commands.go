@@ -37,7 +37,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 
 	split := strings.Fields(args.Command)
 
-	for i := 1; i < len(split); i++ { // Initialize to 1 to skip '/commandTrigger'
+	for i := 1; i < len(split); i++ { // Initialize to 1 to skip '/broom'
 		if i == 1 {
 			subcommand = split[i]
 			if subcommand == helpTrigger {
@@ -55,8 +55,8 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 			i++
 			if i >= len(split) {
 				return "", nil, errors.Errorf(
-					"Argument `--%s` should have a value. Type `/%s %s` to learn how to broom",
-					argName, commandTrigger, helpTrigger,
+					"Argument `--%s` should have a value. Type `/broom %s` to learn how to broom",
+					argName, helpTrigger,
 				)
 			}
 			argValue := split[i]
@@ -129,9 +129,7 @@ func processNamedArgValue(p *Plugin, argName string, argValue string, existingOp
 	}
 
 	// --------------------------------------------
-	return nil, nil, errors.Errorf(
-		"Unknown argument `--%s`. Type `/%s %s` to learn how to broom",
-		argName, commandTrigger, helpTrigger)
+	return nil, nil, errors.Errorf("Unknown argument `--%s`. Type `/broom %s` to learn how to broom", argName, helpTrigger)
 }
 
 // addAllNamedTextArgumentsToCmd add the common named arguments autocompletion to the given command

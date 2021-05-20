@@ -85,7 +85,7 @@ func (p *Plugin) deletePosts(postList *model.PostList, options *deletionOptions)
 			continue // process next post
 		}
 
-		if options.optDeletePinnedPosts && post.IsPinned {
+		if !options.optDeletePinnedPosts && post.IsPinned {
 			result.pinnedPostErrors++
 			continue // process next post
 		}

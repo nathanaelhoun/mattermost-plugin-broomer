@@ -23,6 +23,10 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnActivate() error {
+	if p.API.GetConfig().ServiceSettings.SiteURL == nil {
+		return errors.Errorf("SiteURL is not configured. Please head to the System Console > Environment > Web Server > Site URL")
+	}
+
 	botUserID, err := p.Helpers.EnsureBot(
 		&model.Bot{
 			Username:    "broomerbot",
@@ -36,17 +40,8 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(err, "Failed to ensure bot")
 	}
 
-	_, appErr := p.API.UpdateBotActive(botUserID, true)
-	if appErr != nil {
-		return errors.Wrap(appErr, "Failed mark the bot as active")
-	}
 	p.botUserID = botUserID
 
 	// Registering command in OnConfigurationChange()
 	return nil
-}
-
-func (p *Plugin) OnDeactivate() error {
-	_, appErr := p.API.UpdateBotActive(p.botUserID, false)
-	return errors.Wrap(appErr, "Failed to mark the bot as inactive")
 }

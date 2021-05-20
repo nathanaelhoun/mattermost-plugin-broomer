@@ -1,8 +1,9 @@
-module github.com/mattermost/mattermost-plugin-starter-template
+module github.com/nathanaelhoun/mattermost-plugin-broomer
 
-go 1.12
+go 1.16
 
 require (
-	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200723144633-ed34468996e6
+	github.com/mattermost/mattermost-server/v5 v5.32.1
 	github.com/pkg/errors v0.9.1
+	github.com/stretchr/testify v1.7.0 // indirect
 )

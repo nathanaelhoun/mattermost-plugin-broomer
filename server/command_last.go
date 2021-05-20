@@ -10,8 +10,8 @@ import (
 func (p *Plugin) executeCommandLast(options *deletionOptions) (*model.CommandResponse, *model.AppError) {
 	conf := p.getConfiguration()
 
-	if conf.AskConfirm == AskConfirmNever ||
-		(conf.AskConfirm == AskConfirmOptional && options.optNoConfirmDialog) {
+	if conf.AskConfirm == askConfirmNever ||
+		(conf.AskConfirm == askConfirmOptional && options.optNoConfirmDialog) {
 		// Delete posts without confirmation dialog
 		p.deleteLastPostsInChannel(options)
 		return &model.CommandResponse{}, nil

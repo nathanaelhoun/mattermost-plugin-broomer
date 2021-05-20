@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	// ASK_CONFIRM_ALWAYS   = "always" // deadcode
-	AskConfirmOptional = "optional"
-	AskConfirmNever    = "never"
+	// askConfirmAlways   = "always" // deadcode
+	askConfirmOptional = "optional"
+	askConfirmNever    = "never"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server

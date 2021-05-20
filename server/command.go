@@ -32,7 +32,7 @@ func getCommand(conf *configuration) *model.Command {
 
 	last := model.NewAutocompleteData(lastTrigger, lastHint, lastHelpText)
 	last.AddTextArgument(last.HelpText, lastHint, "[0-9]+")
-	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == AskConfirmOptional)
+	addAllNamedTextArgumentsToCmd(last, conf.AskConfirm == askConfirmOptional)
 
 	help := model.NewAutocompleteData(helpTrigger, helpHint, helpHelpText)
 
@@ -58,7 +58,7 @@ func getHelp(conf *configuration) string {
 		"### Global arguments :\n" +
 		" * `--" + argDeletePinnedPost + "` Also delete pinned post (disabled by default)\n"
 
-	if conf.AskConfirm == AskConfirmOptional {
+	if conf.AskConfirm == askConfirmOptional {
 		helpStr += " * `--" + argNoConfirm + "` Do not show confirmation dialog\n"
 	}
 

@@ -20,6 +20,7 @@ default: all
 
 # Verify environment, and define PLUGIN_ID, PLUGIN_VERSION, HAS_SERVER and HAS_WEBAPP as needed.
 include build/setup.mk
+include build/legacy.mk
 
 BUNDLE_NAME ?= $(PLUGIN_ID)-$(PLUGIN_VERSION).tar.gz
 
@@ -31,11 +32,6 @@ endif
 ## Checks the code style, tests, builds and bundles the plugin.
 .PHONY: all
 all: check-style test dist
-
-## Propagates plugin manifest information into the server/ and webapp/ folders.
-.PHONY: apply
-apply:
-	./build/bin/manifest apply
 
 ## Runs eslint and golangci-lint
 .PHONY: check-style
@@ -76,7 +72,7 @@ endif
 endif
 
 ## Ensures NPM dependencies are installed without having to run this all the time.
-webapp/node_modules: # webapp/package.json workaround for https://github.com/mattermost/mattermost-plugin-starter-template/issues/112
+webapp/node_modules: $(wildcard webapp/package.json)
 ifneq ($(HAS_WEBAPP),)
 	cd webapp && $(NPM) install
 	touch $@
@@ -119,7 +115,7 @@ endif
 
 ## Builds and bundles the plugin.
 .PHONY: dist
-dist:	apply server webapp bundle
+dist:	server webapp bundle
 
 ## Builds and installs the plugin to a server.
 .PHONY: deploy
@@ -128,7 +124,7 @@ deploy: dist
 
 ## Builds and installs the plugin to a server, updating the webapp automatically when changed.
 .PHONY: watch
-watch: apply server bundle
+watch: server bundle
 ifeq ($(MM_DEBUG),)
 	cd webapp && $(NPM) run build:watch
 else
@@ -189,6 +185,9 @@ endif
 ifneq ($(HAS_WEBAPP),)
 	cd webapp && $(NPM) run test;
 endif
+ifneq ($(wildcard ./build/sync/plan/.),)
+	cd ./build/sync && $(GO) test -v $(GO_TEST_FLAGS) ./...
+endif
 
 ## Creates a coverage report for the server code.
 .PHONY: coverage
@@ -248,6 +247,15 @@ ifneq ($(HAS_WEBAPP),)
 	rm -fr webapp/node_modules
 endif
 	rm -fr build/bin/
+
+## Sync directory with a starter template
+sync:
+ifndef STARTERTEMPLATE_PATH
+	@echo STARTERTEMPLATE_PATH is not set.
+	@echo Set STARTERTEMPLATE_PATH to a local clone of https://github.com/mattermost/mattermost-plugin-starter-template and retry.
+	@exit 1
+endif
+	cd ${STARTERTEMPLATE_PATH} && go run ./build/sync/main.go ./build/sync/plan.yml $(PWD)
 
 # Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:

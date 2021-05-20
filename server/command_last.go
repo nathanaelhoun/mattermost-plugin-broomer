@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
+	root "github.com/nathanaelhoun/mattermost-plugin-broomer"
 )
 
 const (
@@ -41,7 +43,7 @@ func (p *Plugin) sendDialogDeleteLast(options *deletionOptions) {
 
 	dialog := &model.OpenDialogRequest{
 		TriggerId: options.triggerID,
-		URL:       fmt.Sprintf("%s/plugins/%s%s", *siteURL, manifest.Id, routeDialogDeleteLast),
+		URL:       fmt.Sprintf("%s/plugins/%s%s", *siteURL, root.Manifest.Id, routeDialogDeleteLast),
 		Dialog: model.Dialog{
 			CallbackId: "confirmPostDeletion",
 			Title: fmt.Sprintf(

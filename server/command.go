@@ -24,17 +24,6 @@ const (
 	argNoConfirm        = "confirm"
 )
 
-// userError defines an error made by the user (incorrect argument, etc).
-// It should not be logged but sent back to the user
-type userError error
-
-func addAllNamedTextArgumentsToCmd(cmd *model.AutocompleteData, disableConfirmDialog bool) {
-	cmd.AddNamedTextArgument(argDeletePinnedPost, "Also delete pinned posts (disabled by default)", "true", "", false)
-	if disableConfirmDialog {
-		cmd.AddNamedTextArgument(argNoConfirm, "Do not show confirmation dialog", "true", "", false)
-	}
-}
-
 func getCommand(conf *configuration) *model.Command {
 	cmdAutocompleteData := model.NewAutocompleteData(commandTrigger, commandHint, commandHelpText)
 	if conf.RestrictToSysadmins {
@@ -82,14 +71,14 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		return nil, nil
 	}
 
-	subcommand, parameters, options, userErr := parseCommandArgs(args)
+	subcommand, options, userErr := p.parseAndCheckCommandArgs(args)
 	if userErr != nil {
 		return p.respondEphemeralResponse(args, userErr.Error()), nil
 	}
 
 	switch subcommand {
 	case lastTrigger:
-		return p.executeCommandLast(args, parameters, options)
+		return p.executeCommandLast(options)
 
 	case helpTrigger:
 		fallthrough

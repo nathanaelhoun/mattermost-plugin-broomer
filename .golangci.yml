@@ -7,8 +7,11 @@ linters-settings:
     simplify: true
   goimports:
     local-prefixes: github.com/nathanaelhoun/mattermost-plugin-broomer
-  golint:
+  revive:
     min-confidence: 0
+    rules:
+      - name: error-strings
+        disabled: true
   govet:
     check-shadowing: true
     enable-all: true
@@ -26,7 +29,7 @@ linters:
     - gocritic
     - gofmt
     - goimports
-    - golint
+    - revive
     - gosec
     - gosimple
     - govet

@@ -1,4 +1,4 @@
-# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer (Beta) [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-broomer/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-broomer)
+# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-broomer/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-broomer)
 
 Clean your channels with `/broom`!
 

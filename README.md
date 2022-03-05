@@ -2,7 +2,7 @@
 
 Clean your channels with `/broom`!
 
-![Plugin screenshot](./assets/screenshot.gif)
+![Plugin screenshot](./.github/screenshot.gif)
 
 **Supported Mattermost Server Versions: 5.24+**
 
@@ -27,23 +27,6 @@ Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-
 
 ## Development
 
-To avoid having to manually install your plugin, build and deploy your plugin with login credentials:
-
-```
-export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_USERNAME=admin
-export MM_ADMIN_PASSWORD=password
-make deploy
-```
-
-or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
-
-```
-export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
-make deploy
-```
-
 If your Mattermost server is running locally, you can enable [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode) to streamline deploying your plugin. Edit your server configuration as follows:
 
 ```
@@ -62,6 +45,30 @@ and then deploy your plugin:
 make deploy
 ```
 
+<details>
+<summary>
+    Alternatives without LocalMode
+</summary>
+To avoid having to manually install your plugin, build and deploy your plugin with login credentials:
+
+```
+export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+export MM_ADMIN_USERNAME=admin
+export MM_ADMIN_PASSWORD=password
+make deploy
+```
+
+or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
+
+```
+export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
+make deploy
+```
+
+</details>
+
 # Thanks to
-- Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)
-- Mattermost for providing a good software and having a great community
+
+-   Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com/)
+-   Mattermost for providing a good software and having a great community

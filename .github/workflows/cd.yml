@@ -1,0 +1,10 @@
+name: cd
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  plugin-cd:
+    uses: mattermost/actions-workflows/.github/workflows/community-plugin-cd.yml@latest
+    secrets: inherit

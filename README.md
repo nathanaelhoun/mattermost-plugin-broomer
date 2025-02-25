@@ -7,7 +7,7 @@ Clean your channels with `/broom`!
 
 ![Plugin screenshot](./.github/screenshot.gif)
 
-**Supported Mattermost Server Versions: 5.24+**
+**Supported and tested Mattermost Server Versions: 9.11+** _(if you have an older version, you should upgrade to a supported one… Or check this plugin older releases if you really have to)_
 
 ## Features
 

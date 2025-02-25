@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 const (
@@ -51,7 +51,7 @@ func (p *Plugin) getAutocompleteIconData() string {
 		return ""
 	}
 
-	icon, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "broom.svg"))
+	icon, err := os.ReadFile(filepath.Join(bundlePath, "assets", "broom.svg"))
 	if err != nil {
 		p.API.LogError("Failed to open icon", "error", err)
 		return ""

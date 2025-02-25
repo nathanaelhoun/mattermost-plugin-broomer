@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // Checks if the user has sysadmin permission
@@ -19,14 +19,14 @@ func isSysadmin(p *Plugin, userID string) bool {
 
 // Checks if the user has the "delete_post" permission
 func canDeletePost(p *Plugin, userID string, channelID string) bool {
-	return p.API.HasPermissionTo(userID, model.PERMISSION_DELETE_POST) ||
-		p.API.HasPermissionToChannel(userID, channelID, model.PERMISSION_DELETE_POST)
+	return p.API.HasPermissionTo(userID, model.PermissionDeletePost) ||
+		p.API.HasPermissionToChannel(userID, channelID, model.PermissionDeletePost)
 }
 
 // Checks if the user has the "delete_others_posts" permission
 func canDeleteOthersPosts(p *Plugin, userID string, channelID string) bool {
-	return p.API.HasPermissionTo(userID, model.PERMISSION_DELETE_OTHERS_POSTS) ||
-		p.API.HasPermissionToChannel(userID, channelID, model.PERMISSION_DELETE_OTHERS_POSTS)
+	return p.API.HasPermissionTo(userID, model.PermissionDeleteOthersPosts) ||
+		p.API.HasPermissionToChannel(userID, channelID, model.PermissionDeleteOthersPosts)
 }
 
 // Returns "s" if the given number is > 1

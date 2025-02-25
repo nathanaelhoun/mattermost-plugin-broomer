@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 const (

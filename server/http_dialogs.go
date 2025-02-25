@@ -1,19 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func (p *Plugin) dialogDeleteLast(w http.ResponseWriter, r *http.Request) {
-	request := model.SubmitDialogRequestFromJson(r.Body)
-	if request == nil {
-		w.WriteHeader(http.StatusBadRequest)
+	var request *model.SubmitDialogRequest
+	decodeErr := json.NewDecoder(r.Body).Decode(&request)
+	if decodeErr != nil || request == nil {
+		p.API.LogWarn("failed to decode SubmitDialogRequest")
+		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
 
+	//nolint:misspell
 	if request.Cancelled {
 		w.WriteHeader(http.StatusOK)
 		return

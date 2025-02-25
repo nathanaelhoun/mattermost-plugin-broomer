@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -86,7 +86,7 @@ func (p *Plugin) parseAndCheckCommandArgs(args *model.CommandArgs) (string, *del
 		}
 
 		if numPostToDelete64 < 1 {
-			return subcommand, nil, errors.Errorf("You may want to delete at least one post :wink:")
+			return subcommand, nil, errors.Errorf("You may want to delete at least one post :wink: ")
 		}
 
 		currentChannel, appErr := p.API.GetChannel(args.ChannelId)

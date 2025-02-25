@@ -1,7 +1,6 @@
 # <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer
 
-[![Build Status](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/ci.yml/badge.svg)](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/ci.yml)
-[![E2E Status](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/e2e.yml/badge.svg)](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/e2e.yml)
+[![Build Status](https://github.com/nathanaelhoun/mattermost-plugin-broomer/actions/workflows/ci.yml/badge.svg)](https://github.com/nathanaelhoun/mattermost-plugin-broomer/actions/workflows/ci.yml)
 
 Clean your channels with `/broom`!
 

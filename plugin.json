@@ -3,7 +3,7 @@
     "name": "Broomer",
     "description": "Clean your channels with /broom",
     "version": "1.0.0",
-    "min_server_version": "5.24.0",
+    "min_server_version": "9.11.0",
     "homepage_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer",
     "support_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/issues/new/choose",
     "release_notes_url": "https://github.com/nathanaelhoun/mattermost-plugin-broomer/releases",

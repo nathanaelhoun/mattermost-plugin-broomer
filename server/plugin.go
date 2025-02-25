@@ -6,6 +6,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/pluginapi"
+
 	"github.com/pkg/errors"
 )
 
@@ -28,6 +29,10 @@ type Plugin struct {
 func (p *Plugin) OnActivate() error {
 	if p.API.GetConfig().ServiceSettings.SiteURL == nil {
 		return errors.Errorf("SiteURL is not configured. Please head to the System Console > Environment > Web Server > Site URL")
+	}
+
+	if p.client == nil {
+		p.client = pluginapi.NewClient(p.API, p.Driver)
 	}
 
 	botUserID, err := p.client.Bot.EnsureBot(

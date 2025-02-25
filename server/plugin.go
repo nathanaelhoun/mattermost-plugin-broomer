@@ -22,6 +22,7 @@ type Plugin struct {
 	botUserID string
 }
 
+// OnActivate is invoked when the plugin is activated. If an error is returned, the plugin will be deactivated.
 func (p *Plugin) OnActivate() error {
 	if p.API.GetConfig().ServiceSettings.SiteURL == nil {
 		return errors.Errorf("SiteURL is not configured. Please head to the System Console > Environment > Web Server > Site URL")

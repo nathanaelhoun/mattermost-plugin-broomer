@@ -1,4 +1,7 @@
-# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer [![CircleCI branch](https://img.shields.io/circleci/project/github/nathanaelhoun/mattermost-plugin-broomer/master.svg)](https://circleci.com/gh/nathanaelhoun/mattermost-plugin-broomer)
+# <img src="./assets/broom.svg" height="32" alt="Broom logo"> Plugin Broomer
+
+[![Build Status](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/ci.yml/badge.svg)](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/ci.yml)
+[![E2E Status](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/e2e.yml/badge.svg)](https://github.com/nathanaelhoun/mattermost-plugin-broom/actions/workflows/e2e.yml)
 
 Clean your channels with `/broom`!
 
@@ -26,21 +29,21 @@ Clean your channels with `/broom`!
 Feel free to [file an issue](https://github.com/nathanaelhoun/mattermost-plugin-broomer/issues/new/choose) to submit possible improvements. PR are also welcomed!
 
 ## Development
+### Deploying with Local Mode
 
 If your Mattermost server is running locally, you can enable [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode) to streamline deploying your plugin. Edit your server configuration as follows:
 
-```
+```json
 {
     "ServiceSettings": {
         ...
         "EnableLocalMode": true,
         "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"
-    }
+    },
 }
 ```
 
 and then deploy your plugin:
-
 ```
 make deploy
 ```
@@ -59,8 +62,7 @@ make deploy
 ```
 
 or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
-
-```
+```bash
 export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
 export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
 make deploy

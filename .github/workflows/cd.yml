@@ -1,10 +1,10 @@
-name: cd
+name: 'cd'
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   plugin-cd:
-    uses: mattermost/actions-workflows/.github/workflows/community-plugin-cd.yml@main
-    secrets: inherit
+    uses: 'mattermost/actions-workflows/.github/workflows/community-plugin-cd.yml@main'
+    secrets: 'inherit'
